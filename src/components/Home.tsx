@@ -1,48 +1,24 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 import { Box, Flex, Heading, Text } from "@chakra-ui/react";
-import { apiRoutes, getToken, isUserAuthenticated } from "../utils/GlobalVariables";
+import { listPublications } from "../services/api";
+import type { Publication } from "../types";
 import PublicationCard from "./PublicationCard";
 import ImageModal from "./modals/ImageModal";
 import { SkeletonFeed } from "./Skeletons";
 import InfiniteScroll from "react-infinite-scroll-component";
 
 function Home() {
-    const [publicaciones, setPublicaciones] = useState<any[]>([]);
+    const [publicaciones, setPublicaciones] = useState<Publication[]>([]);
     const [isLoadingPublications, setIsLoadingPublications] = useState(true);
     const [imagenSeleccionada, setImagenSeleccionada] = useState<string | null>(null);
 
-    // Pagination specific states
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
 
     const loadPublications = async (pageNumber: number) => {
         try {
-            const isAuth = await isUserAuthenticated();
-            const token = isAuth ? await getToken() : null;
-
-            const url = isAuth ? apiRoutes.list_publications_user_auth_url : apiRoutes.list_publications_url;
-            const res = await axios.get(url, {
-                params: { page: pageNumber, limit: 10 },
-                ...(isAuth && {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }),
-            });
-
-            let newPosts = [];
-            let more = false;
-
-            if (Array.isArray(res.data)) {
-                newPosts = res.data;
-                more = false;
-            } else {
-                newPosts = res.data.publicaciones || [];
-                more = res.data.hasMore ?? false;
-            }
-
-            setPublicaciones(prev => pageNumber === 1 ? newPosts : [...prev, ...newPosts]);
+            const { publications, hasMore: more } = await listPublications(pageNumber, 10);
+            setPublicaciones(prev => pageNumber === 1 ? publications : [...prev, ...publications]);
             setHasMore(more);
         } catch {
             setHasMore(false);
