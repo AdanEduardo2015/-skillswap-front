@@ -1,77 +1,72 @@
 // ===========================
-// Core Entity Interfaces
+// Core Entity Interfaces (Standardized camelCase)
 // ===========================
 
 export interface UserSummary {
-  Correo_electronico?: string;
-  nombre_usuario?: string;
-  Nombre_usuario?: string;
-  Url_foto_perfil?: string;
-  url_foto_perfil?: string;
-  role?: string;
-  foto_perfil?: string;
+  email: string;
+  username: string;
+  profilePicUrl?: string;
+  role: 'user' | 'moderator' | 'admin';
 }
 
 export interface CommentData {
-  id_comentario: string;
-  contenido: string;
-  fecha_comentario: string;
-  Can_delete?: boolean;
-  Can_update?: boolean;
-  Usuario?: UserSummary;
+  id: string;
+  content: string;
+  createdAt: string;
+  canDelete?: boolean;
+  canUpdate?: boolean;
+  user?: UserSummary;
 }
 
 export interface CommentsSummary {
   total: number;
-  lista?: CommentData[];
-}
-
-export interface LikesSummary {
-  total: number;
-}
-
-export interface SharedSummary {
-  total: number;
+  list: CommentData[];
 }
 
 export interface Publication {
-  Id_publicacion: string;
-  Contenido: string;
-  Url_imagen?: string | null;
-  Url_video?: string | null;
-  Lat?: string | null;
-  Long?: string | null;
-  Fecha_publicacion: string;
-  Usuario?: UserSummary;
-  comentarios?: CommentsSummary;
-  likes?: LikesSummary;
-  compartidos?: SharedSummary;
-  is_Liked?: boolean;
-  Is_Liked?: boolean;
-  is_liked?: boolean;
-  Can_delete?: boolean;
-  Can_update?: boolean;
+  id: string;
+  content: string;
+  imageUrl?: string | null;
+  videoUrl?: string | null;
+  lat?: number | null;
+  long?: number | null;
+  createdAt: string;
+  user?: UserSummary;
+  comments?: CommentsSummary;
+  likesCount: number;
+  sharesCount: number;
+  isLiked?: boolean;
+  canDelete?: boolean;
+  canUpdate?: boolean;
 }
 
 export interface Notification {
-  id_notificacion: string;
-  mensaje: string;
-  id_publicacion: string;
-  usuario?: UserSummary;
+  id: string;
+  message: string;
+  publicationId: string;
+  user?: UserSummary;
+  read?: boolean;
+  createdAt: string;
 }
 
 // ===========================
 // API Response Interfaces
 // ===========================
 
-export interface PublicationsListResponse {
-  publicaciones: Publication[];
-  hasMore?: boolean;
-  usuario?: {
-    nombre_usuario: string;
-    foto_perfil: string;
-    role: string;
-  };
+export interface ApiResponse<T> {
+  data: T;
+  message?: string;
+  error?: string;
+}
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  hasMore: boolean;
+  nextToken?: string | null;
+}
+
+export interface PublicationsListResponse extends PaginatedResponse<Publication> {
+  userProfile?: UserSummary;
 }
 
 export interface NotificationsResponse {

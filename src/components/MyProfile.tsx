@@ -2,8 +2,7 @@ import { useEffect, useState } from "react";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { App } from "@capacitor/app";
 import { useNavigate, useOutletContext } from "react-router-dom";
-import axios from "axios";
-import { apiRoutes, getToken } from "../utils/GlobalVariables";
+import { api } from "../services/api";
 import { useUserData } from "../utils/UserStore";
 import PublicationCard from "./PublicationCard";
 import ImageModal from "./modals/ImageModal";
@@ -39,62 +38,41 @@ export default function MyProfile() {
   const [showTurnOffLinks, setShowTurnOffLinks] = useState<boolean>(false);
   const [showTurnOffPush, setShowTurnOffPush] = useState<boolean>(false);
 
-  const [page, setPage] = useState(1);
+  const [nextToken, setNextToken] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
 
-  const loadPublications = async (pageNumber: number, mounted: boolean = true) => {
+  const loadPublications = async (token: string | null = null, mounted: boolean = true) => {
     try {
-      const token = await getToken();
+      if (!authContext.email) return;
 
-      const res = await axios.post(
-        apiRoutes.list_user_publications_user_auth_url,
-        { Correo_electronico: authContext.email },
-        {
-          params: { page: pageNumber, limit: 10 },
-          headers: {
-            Authorization: `Bearer ${token}`,
-          }
-        }
-      );
+      const res = await api.publications.listByUser(authContext.email, 10, token);
 
       if (!mounted) return;
 
-      let newPosts = [];
-      let more = false;
-
-      if (Array.isArray(res.data.publicaciones)) {
-        newPosts = res.data.publicaciones;
-        setName(res.data.usuario.nombre_usuario);
-        setProfilePictureUrl(res.data.usuario.foto_perfil);
-        setRole(res.data.usuario.role);
-        more = false;
-      } else if (res.data.publicaciones) {
-        newPosts = res.data.publicaciones;
-        more = res.data.hasMore ?? false;
-      } else if (Array.isArray(res.data)) {
-        newPosts = res.data;
-        more = false;
+      if (res.userProfile) {
+        setName(res.userProfile.username);
+        setProfilePictureUrl(res.userProfile.profilePicUrl || null);
+        setRole(res.userProfile.role);
       }
 
-      setPosts(prev => pageNumber === 1 ? newPosts : [...prev, ...newPosts]);
-      setHasMore(more);
+      setPosts(prev => token === null ? res.items : [...prev, ...res.items]);
+      setHasMore(res.hasMore);
+      setNextToken(res.nextToken ?? null);
     } catch (err: any) {
-      const status = err?.response?.status;
-      if (status === 403) {
+      const status = err.message?.includes("403") || err.response?.status === 403;
+      if (status) {
         if (mounted) setIsBannedUser(true);
-      } else if (status === 401) {
+      } else if (err.message?.includes("401") || err.response?.status === 401) {
         navigate("/login");
       }
       setHasMore(false);
     } finally {
-      if (mounted && pageNumber === 1) setIsLoading(false);
+      if (mounted && token === null) setIsLoading(false);
     }
   };
 
   const fetchMoreData = () => {
-    const nextPage = page + 1;
-    setPage(nextPage);
-    loadPublications(nextPage, true);
+    loadPublications(nextToken, true);
   };
 
   useEffect(() => {
@@ -105,7 +83,7 @@ export default function MyProfile() {
     setProfilePictureUrl(authContext.picture);
 
     if (authContext.email) {
-      loadPublications(1, mounted);
+      loadPublications(null, mounted);
     }
 
     (async () => {
@@ -378,7 +356,7 @@ export default function MyProfile() {
             }
             style={{ overflow: 'hidden' }}
           >
-            {posts.map((post: any) => <PublicationCard key={post.Id_publicacion} post={post} onImageClick={setImagenSeleccionada} />)}
+            {posts.map((post: any) => <PublicationCard key={post.id} post={post} onImageClick={setImagenSeleccionada} />)}
           </InfiniteScroll>
         )}
 

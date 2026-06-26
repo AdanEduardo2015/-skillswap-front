@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import axios from 'axios';
-import { apiRoutes, getToken, isUserAuthenticated } from '../../utils/GlobalVariables';
+import { api } from '../../services/api';
+import { isUserAuthenticated } from '../../utils/GlobalVariables';
 import { useNotificationStore } from '../../utils/NotificationStore';
 
 export function useNotificationPolling() {
@@ -14,16 +14,9 @@ export function useNotificationPolling() {
                 const isAuthenticated = await isUserAuthenticated();
                 if (!isAuthenticated) return;
 
-                const token = await getToken();
-                if (!token) return;
+                const res = await api.notifications.list(1);
 
-                const res = await axios.get(apiRoutes.messages_account_url, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                });
-
-                const notifications = res.data.notifications || [];
+                const notifications = res.notifications || [];
                 if (notifications.length > 0) {
                     setHasUnreadNotifications(true);
                 } else {

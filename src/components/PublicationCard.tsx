@@ -53,7 +53,7 @@ export default function PublicationCard({ post: initialPost, onImageClick, onCli
             <Flex
                 my={3}
                 userSelect="none"
-                onClick={() => !isBannedUser && !isPreview && navigate("/publication?post=" + post.Id_publicacion)}
+                onClick={() => !isBannedUser && !isPreview && navigate("/publication?post=" + post.id)}
                 alignItems="flex-start"
             >
                 <Box color="white" flex="1">
@@ -73,7 +73,7 @@ export default function PublicationCard({ post: initialPost, onImageClick, onCli
                     <PublicationActions
                         isLiked={isLiked}
                         likes={likes}
-                        commentCount={post.comentarios?.total ?? 0}
+                        commentCount={post.comments?.total ?? 0}
                         sharedCount={sharedCount}
                         isPreview={isPreview}
                         onLike={handleLike}

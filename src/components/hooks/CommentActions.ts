@@ -1,12 +1,15 @@
-import { useState } from "react";
-import axios from "axios";
-import { apiRoutes, getToken } from "../../utils/GlobalVariables";
+import { useState, useEffect, useCallback } from "react";
+import { api } from "../../services/api";
 import { useUserData } from "../../utils/UserStore";
 
 export function useCommentActions(initialComments: any, publicationId: string, onSuccess?: () => void, onDeleteSuccess?: () => void) {
-    const [comments, setComments] = useState(initialComments?.lista || []);
+    const [comments, setComments] = useState(initialComments?.list || []);
     const [totalComments, setTotalComments] = useState(initialComments?.total || 0);
     const [isCreatingComment, setIsCreatingComment] = useState(false);
+    const [isLoadingComments, setIsLoadingComments] = useState(false);
+    const [nextToken, setNextToken] = useState<string | null>(null);
+    const [hasMore, setHasMore] = useState(false);
+
     const { name, profilePictureUrl } = useUserData();
 
     const [showAuthModal, setShowAuthModal] = useState(false);
@@ -17,27 +20,42 @@ export function useCommentActions(initialComments: any, publicationId: string, o
         setShowAuthModal(true);
     };
 
+    const fetchComments = useCallback(async (token: string | null = null) => {
+        setIsLoadingComments(true);
+        try {
+            const res = await api.comments.list(publicationId, 20, token);
+            setComments((prev: any[]) => token ? [...prev, ...res.items] : res.items);
+            setHasMore(res.hasMore);
+            setNextToken(res.nextToken ?? null);
+        } catch (err) {
+            console.error("Error fetching comments:", err);
+        } finally {
+            setIsLoadingComments(false);
+        }
+    }, [publicationId]);
+
+    useEffect(() => {
+        if (publicationId) {
+            fetchComments();
+        }
+    }, [publicationId, fetchComments]);
+
     const handleAddComment = async (content: string) => {
         if (!content.trim()) return false;
         setIsCreatingComment(true);
 
         try {
-            const token = await getToken();
-            const res = await axios.post(
-                apiRoutes.comment_publication_url,
-                { Id_objetivo: publicationId, Contenido: content },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            const res = await api.comments.create(publicationId, content);
 
-            if (res.data?.id) {
+            if (res.id) {
                 const newComm = {
-                    id_comentario: res.data.id,
-                    contenido: content,
-                    fecha_comentario: new Date().toISOString(),
-                    Can_delete: true,
-                    Usuario: {
-                        Nombre_usuario: name ?? "Usuario",
-                        Url_foto_perfil: profilePictureUrl ?? "/Profile.svg"
+                    id: res.id,
+                    content: content,
+                    createdAt: new Date().toISOString(),
+                    canDelete: true,
+                    user: {
+                        username: name ?? "Usuario",
+                        profilePicUrl: profilePictureUrl ?? "/Profile.svg"
                     }
                 };
 
@@ -47,9 +65,8 @@ export function useCommentActions(initialComments: any, publicationId: string, o
                 return true;
             }
         } catch (err: any) {
-            const status = err?.response?.status;
-            if (status === 401) triggerAuth("Para comentar necesitas iniciar sesión en Comunired.");
-            if (status === 403) triggerAuth("Usted está baneado, no puede comentar.");
+            if (err.message.includes("401")) triggerAuth("Para comentar necesitas iniciar sesión en Comunired.");
+            else if (err.message.includes("403")) triggerAuth("Usted está baneado, no puede comentar.");
             return false;
         } finally {
             setIsCreatingComment(false);
@@ -61,44 +78,28 @@ export function useCommentActions(initialComments: any, publicationId: string, o
         if (!newContent.trim()) return false;
 
         try {
-            const token = await getToken();
-            const res = await axios.put(
-                apiRoutes.edit_comment_url,
-                { Id_comentario: commentId, Contenido: newContent },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            if (res.status === 200 || res.status === 204) {
-                setComments((prev: any[]) => prev.map((c: any) =>
-                    c.id_comentario === commentId ? { ...c, contenido: newContent } : c
-                ));
-                return true;
-            }
+            await api.comments.edit(commentId, newContent);
+            setComments((prev: any[]) => prev.map((c: any) =>
+                c.id === commentId ? { ...c, content: newContent } : c
+            ));
+            return true;
         } catch (err: any) {
-            const status = err?.response?.status;
-            if (status === 401) triggerAuth("Para editar un comentario necesitas iniciar sesión.");
-            if (status === 403) triggerAuth("No tienes permiso para editar este comentario.");
+            if (err.message.includes("401")) triggerAuth("Para editar un comentario necesitas iniciar sesión.");
+            else if (err.message.includes("403")) triggerAuth("No tienes permiso para editar este comentario.");
         }
         return false;
     };
 
     const handleDeleteComment = async (commentId: string) => {
         try {
-            const token = await getToken();
-            await axios.post(
-                apiRoutes.delete_comment_url,
-                { Id_comentario: commentId },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            setComments((prev: any[]) => prev.filter((c: any) => c.id_comentario !== commentId));
+            await api.comments.delete(commentId);
+            setComments((prev: any[]) => prev.filter((c: any) => c.id !== commentId));
             setTotalComments((prev: number) => prev - 1);
             if (onDeleteSuccess) onDeleteSuccess();
             return true;
         } catch (err: any) {
-            const status = err?.response?.status;
-            if (status === 401) triggerAuth("Para eliminar un comentario necesitas iniciar sesión.");
-            if (status === 403) triggerAuth("No tienes permiso para eliminar este comentario.");
+            if (err.message.includes("401")) triggerAuth("Para eliminar un comentario necesitas iniciar sesión.");
+            else if (err.message.includes("403")) triggerAuth("No tienes permiso para eliminar este comentario.");
             return false;
         }
     };
@@ -107,6 +108,10 @@ export function useCommentActions(initialComments: any, publicationId: string, o
         comments,
         totalComments,
         isCreatingComment,
+        isLoadingComments,
+        nextToken,
+        hasMore,
+        fetchComments,
         showAuthModal,
         setShowAuthModal,
         authMessage,

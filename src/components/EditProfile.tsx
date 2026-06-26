@@ -2,11 +2,11 @@ import { useRef, useState, useEffect } from "react";
 import { useNavigate, useOutletContext, useLocation } from "react-router-dom";
 import { uploadFile } from "../utils/UploadUtils";
 import { updateUserAttributes, fetchAuthSession } from "aws-amplify/auth";
+import { api } from "../services/api";
 import { useUserData } from "../utils/UserStore";
 import type { AuthContext } from "./layouts/LoggedLayout";
-import { apiRoutes, getToken, useSearchParamsGlobal } from "../utils/GlobalVariables";
+import { useSearchParamsGlobal } from "../utils/GlobalVariables";
 import { Box, Flex, Heading, Text, Input, Button, Spinner, Image } from "@chakra-ui/react";
-import axios from "axios";
 
 function EditProfile() {
     const navigate = useNavigate();
@@ -132,32 +132,21 @@ function EditProfile() {
         setIsSendingForm(true);
 
         try {
-            const token = await getToken();
-
-            if (isAdminEdit) {
-                await axios.post(
-                    apiRoutes.update_user_url,
-                    {
-                        correo_objetivo: targetUserEmail,
-                        nombre_usuario: trimmedName,
-                        foto_perfil: profileImage,
-                    },
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
+            if (isAdminEdit && targetUserEmail) {
+                await api.admin.updateUser(targetUserEmail, {
+                    username: trimmedName,
+                    profilePicUrl: profileImage || undefined
+                });
                 navigate(`/profile?user=${targetUserEmail}`);
             } else {
                 const userAttributes: Record<string, string> = {};
                 if (hasNameChange) userAttributes.name = trimmedName;
                 if (hasPictureChange && profileImage) userAttributes.picture = profileImage;
 
-                await axios.post(
-                    apiRoutes.update_user_url,
-                    {
-                        nombre_usuario: trimmedName,
-                        foto_perfil: profileImage,
-                    },
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
+                await api.users.update({
+                    username: trimmedName,
+                    profilePicUrl: profileImage || undefined
+                });
 
                 await updateUserAttributes({ userAttributes });
                 await fetchAuthSession({ forceRefresh: true });

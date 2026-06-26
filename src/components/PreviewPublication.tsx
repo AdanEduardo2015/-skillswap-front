@@ -1,7 +1,6 @@
 import { useState } from "react";
-import axios from "axios";
 import { usePublicationData } from "../utils/PublicationStore";
-import { apiRoutes, getToken } from "../utils/GlobalVariables";
+import { api } from "../services/api";
 import PublicationCard from "./PublicationCard";
 import ImageModal from "./modals/ImageModal";
 import { useUserData } from "../utils/UserStore";
@@ -11,7 +10,7 @@ import { Flex, Box, Button, Spinner, Text } from "@chakra-ui/react";
 function PreviewPublication() {
     const navigate = useNavigate();
     const [isSendingForm, setIsSendingForm] = useState<boolean | null>(null);
-    const { text, image, video, latitude, longitude, setText, setImage, setVideo, resetPublication } = usePublicationData();
+    const { text, image, video, latitude, longitude, resetPublication } = usePublicationData();
     const { email: userEmail, name: userName, profilePictureUrl } = useUserData();
     const [imagenSeleccionada, setImagenSeleccionada] = useState<string | null>(null);
 
@@ -20,19 +19,21 @@ function PreviewPublication() {
 
         setIsSendingForm(true);
 
-        const token = await getToken();
-        axios.post(apiRoutes.create_publication_url, { Contenido: text, Url_imagen: image, Url_video: video, Lat: latitude, Long: longitude }, { headers: { Authorization: `Bearer ${token}` } })
-            .then(() => {
-                setText(null);
-                setImage(null);
-                setVideo(null);
-                resetPublication();
-                navigate("/my-profile");
-            })
-            .catch(() => { })
-            .finally(() => {
-                setIsSendingForm(false);
+        try {
+            await api.publications.create({
+                content: text,
+                imageUrl: image,
+                videoUrl: video,
+                lat: latitude,
+                long: longitude
             });
+            resetPublication();
+            navigate("/my-profile");
+        } catch {
+            // Error is handled by api interceptor/service
+        } finally {
+            setIsSendingForm(false);
+        }
     };
 
     return (
@@ -42,21 +43,23 @@ function PreviewPublication() {
                     key={0}
                     isPreview={true}
                     post={{
-                        Id_publicacion: 0,
-                        Usuario: {
-                            Correo_electronico: userEmail,
-                            nombre_usuario: userName,
-                            Url_foto_perfil: profilePictureUrl
+                        id: '0',
+                        user: {
+                            email: userEmail ?? '',
+                            username: userName ?? '',
+                            profilePicUrl: profilePictureUrl ?? '',
+                            role: 'user'
                         },
-                        Fecha_publicacion: new Date().toISOString().split("T")[0],
-                        Contenido: text,
-                        Url_imagen: image,
-                        Url_video: video,
-                        Lat: latitude,
-                        Long: longitude,
-                        Me_gusta: 0,
-                        Comentarios: 0,
-                        Compartidos: 0
+                        createdAt: new Date().toISOString().split("T")[0],
+                        content: text ?? '',
+                        imageUrl: image,
+                        videoUrl: video,
+                        lat: latitude ? (typeof latitude === 'string' ? parseFloat(latitude) : latitude) : null,
+                        long: longitude ? (typeof longitude === 'string' ? parseFloat(longitude) : longitude) : null,
+                        likesCount: 0,
+                        sharesCount: 0,
+                        isLiked: false,
+                        comments: { total: 0, list: [] }
                     }}
                     onImageClick={setImagenSeleccionada}
                 />

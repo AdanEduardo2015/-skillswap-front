@@ -2,7 +2,7 @@ import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatFecha } from "../../utils/GlobalVariables";
 import { useUserData } from "../../utils/UserStore";
-import { Box, Flex, Image, Text } from "@chakra-ui/react";
+import { Flex, Image, Text } from "@chakra-ui/react";
 import type { Publication } from "../../types";
 
 interface PublicationHeaderProps {
@@ -36,29 +36,29 @@ export default function PublicationHeader({ post, isPreview, onImageClick, onSho
         <Flex justify="space-between" mb={3}>
             <Flex align="center" gap={3}>
                 <Image
-                    src={post.Usuario?.Url_foto_perfil ?? "/Profile.svg"}
+                    src={post.user?.profilePicUrl ?? "/Profile.svg"}
                     cursor="pointer"
                     borderRadius="full"
                     boxSize="1.5rem"
-                    onClick={e => { e.stopPropagation(); onImageClick(post.Usuario?.Url_foto_perfil ?? "/Profile.svg"); }}
+                    onClick={e => { e.stopPropagation(); onImageClick(post.user?.profilePicUrl ?? "/Profile.svg"); }}
                 />
                 <Text
                     as="a"
-                    color="white"
+                    color="var(--text-color)"
                     fontWeight="bold"
                     cursor={isPreview ? "default" : "pointer"}
-                    onClick={(e: React.MouseEvent) => { e.stopPropagation(); !isPreview && navigate("/profile?user=" + post.Usuario?.Correo_electronico); }}
+                    onClick={(e: React.MouseEvent) => { e.stopPropagation(); !isPreview && navigate("/profile?user=" + post.user?.email); }}
                 >
-                    {post.Usuario?.nombre_usuario}
+                    {post.user?.username}
                 </Text>
             </Flex>
             <Flex align="center" position="relative" ref={optionsRef}>
-                <Text as="span" mr={post.Can_delete ? 2 : 3} fontSize="sm" color="gray.400">{formatFecha(post.Fecha_publicacion)}</Text>
-                {post.Can_delete && !isBannedUser && (
+                <Text as="span" mr={(post.canDelete || post.canUpdate) ? 2 : 3} fontSize="sm" color="gray.400">{formatFecha(post.createdAt)}</Text>
+                {(post.canDelete || post.canUpdate) && !isBannedUser && (
                     <>
                         <Image
                             src="/Show_Options.svg"
-                            filter="invert(0)"
+                            filter="none"
                             cursor="pointer"
                             height="1.2rem"
                             alt="Opciones"
@@ -70,37 +70,40 @@ export default function PublicationHeader({ post, isPreview, onImageClick, onSho
                                 position="absolute"
                                 right="0"
                                 top="100%"
-                                bg="#2d2d2d"
+                                bg="var(--card-bg)"
+                                border="1px solid var(--input-border)"
                                 borderRadius="md"
                                 boxShadow="0 4px 12px rgba(0,0,0,0.5)"
                                 zIndex={10}
                                 py={2}
                                 w="150px"
                             >
-                                {post.Can_update && (
+                                {post.canUpdate && (
                                     <Flex
                                         align="center"
                                         px={4}
                                         py={2}
                                         cursor="pointer"
-                                        _hover={{ bg: "#3d3d3d" }}
+                                        _hover={{ bg: "rgba(255,255,255,0.1)" }}
                                         onClick={e => { e.stopPropagation(); setShowOptions(false); onShowEditModal(); }}
                                     >
-                                        <Image src="/Edit.svg" width="20px" mr={3} alt="Editar" filter="none" />
-                                        <Text fontSize="sm" color="white" fontWeight="bold">Editar</Text>
+                                        <Image src="/Edit.svg" width="20px" mr={3} alt="Editar" />
+                                        <Text fontSize="sm" color="var(--text-color)" fontWeight="bold">Editar</Text>
                                     </Flex>
                                 )}
-                                <Flex
-                                    align="center"
-                                    px={4}
-                                    py={2}
-                                    cursor="pointer"
-                                    _hover={{ bg: "#3d3d3d" }}
-                                    onClick={e => { e.stopPropagation(); setShowOptions(false); onShowDeleteModal(); }}
-                                >
-                                    <Image src="/Delete.svg" width="20px" mr={3} alt="Eliminar" />
-                                    <Text fontSize="sm" color="red.500" fontWeight="bold">Eliminar</Text>
-                                </Flex>
+                                {post.canDelete && (
+                                    <Flex
+                                        align="center"
+                                        px={4}
+                                        py={2}
+                                        cursor="pointer"
+                                        _hover={{ bg: "rgba(255,255,255,0.1)" }}
+                                        onClick={e => { e.stopPropagation(); setShowOptions(false); onShowDeleteModal(); }}
+                                    >
+                                        <Image src="/Delete.svg" width="20px" mr={3} alt="Eliminar" />
+                                        <Text fontSize="sm" color="red.500" fontWeight="bold">Eliminar</Text>
+                                    </Flex>
+                                )}
                             </Flex>
                         )}
                     </>

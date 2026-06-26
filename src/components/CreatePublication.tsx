@@ -1,7 +1,6 @@
 import { useRef, useState, useEffect } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { apiRoutes, getToken } from "../utils/GlobalVariables";
+import { api } from "../services/api";
 import { useUserData } from "../utils/UserStore";
 import { usePublicationData } from "../utils/PublicationStore";
 import { uploadFile } from "../utils/UploadUtils";
@@ -279,19 +278,14 @@ function CreatePublication() {
         setIsSendingForm(true);
         try {
             const realText = textareaRef.current?.value || "";
-            const token = await getToken();
-
-            await axios.post(
-                apiRoutes.create_publication_url,
-                {
-                    Contenido: realText,
-                    Url_imagen: image,
-                    Url_video: video,
-                    Lat: latitude,
-                    Long: longitude
-                },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            
+            await api.publications.create({
+                content: realText,
+                imageUrl: image,
+                videoUrl: video,
+                lat: latitude,
+                long: longitude
+            });
 
             resetPublication();
             setPreviewImage(null);
@@ -299,11 +293,7 @@ function CreatePublication() {
             setShowMap(false);
             navigate("/my-profile");
         } catch (error: any) {
-            if (error.response?.data?.error) {
-                setErrorMessage(error.response.data.error);
-            } else {
-                setErrorMessage("Ocurrió un error al publicar.");
-            }
+            setErrorMessage(error.message || "Ocurrió un error al publicar.");
             setTimeout(() => setErrorMessage(""), 5000);
         } finally {
             setIsSendingForm(false);

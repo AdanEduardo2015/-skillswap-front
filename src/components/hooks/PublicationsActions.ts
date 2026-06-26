@@ -1,13 +1,12 @@
 import { useRef, useState } from "react";
-import axios from "axios";
-import { apiRoutes, getToken } from "../../utils/GlobalVariables";
+import { api } from "../../services/api";
 
 export function usePublicationActions(post: any) {
     const [isLiked, setIsLiked] = useState(
-        post?.is_Liked ?? post?.Is_Liked ?? post?.is_liked ?? false
+        post?.isLiked ?? false
     );
-    const [likes, setLikes] = useState(post.likes?.total ?? 0);
-    const [sharedCount, setSharedCount] = useState(post.compartidos?.total ?? 0);
+    const [likes, setLikes] = useState(post.likesCount ?? 0);
+    const [sharedCount, setSharedCount] = useState(post.sharesCount ?? 0);
 
     const shareLock = useRef(false);
     const processingLikes = useRef(false);
@@ -30,27 +29,21 @@ export function usePublicationActions(post: any) {
         setIsLiked((prev: any) => !prev);
         setLikes((prev: any) => Number(prev) + change);
 
-        const token = await getToken();
-
-        await axios.post(
-            isLiked ? apiRoutes.unlike_publications_url : apiRoutes.like_publications_url,
-            { Id_objetivo: post.Id_publicacion },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+        try {
+            if (isLiked) {
+                await api.social.unlike(post.id);
+            } else {
+                await api.social.like(post.id);
             }
-        )
-            .catch(err => {
-                setIsLiked((prev: any) => !prev);
-                setLikes((prev: any) => Number(prev) - change);
+        } catch (err: any) {
+            setIsLiked((prev: any) => !prev);
+            setLikes((prev: any) => Number(prev) - change);
 
-                if (err?.response?.status === 401) triggerAuth("Para dar me gusta a una publicación necesitas iniciar sesión.");
-                if (err?.response?.status === 403) triggerAuth("Parece que no tienes permisos o estás baneado.");
-            })
-            .finally(() => {
-                processingLikes.current = false;
-            });
+            if (err.message.includes("401")) triggerAuth("Para dar me gusta a una publicación necesitas iniciar sesión.");
+            else if (err.message.includes("403")) triggerAuth("Parece que no tienes permisos o estás baneado.");
+        } finally {
+            processingLikes.current = false;
+        }
     };
 
     const handleShare = async () => {
@@ -61,51 +54,32 @@ export function usePublicationActions(post: any) {
 
         setSharedCount((prev: number) => prev + 1);
         navigator.clipboard.writeText(
-            "https://comuni-red.com/publication?post=" + post.Id_publicacion
+            "https://comuni-red.com/publication?post=" + post.id
         );
         setShowCopied(true);
         setTimeout(() => setShowCopied(false), 2000);
 
-        const token = await getToken();
-
-        await axios.post(
-            apiRoutes.share_publication_url,
-            { Id_objetivo: post.Id_publicacion },
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
+        try {
+            await api.social.share(post.id);
+        } catch (err: any) {
+            setSharedCount(previousValue);
+            if (err.message.includes("401") || err.message.includes("403")) {
+                triggerAuth("Tu compartido no se ha registrado porque no tienes sesión iniciada, pero aún puedes compartir el enlace.");
             }
-        )
-            .catch((err) => {
-                setSharedCount(previousValue);
-                if (err?.response?.status === 401 || err?.response?.status === 403) {
-                    triggerAuth("Tu compartido no se ha registrado porque no tienes sesión iniciada, pero aún puedes compartir el enlace.");
-                }
-            })
-            .finally(() => {
-                setTimeout(() => {
-                    shareLock.current = false;
-                }, 600);
-            });
+        } finally {
+            setTimeout(() => {
+                shareLock.current = false;
+            }, 600);
+        }
     };
 
     const handleDelete = async () => {
         try {
-            const token = await getToken();
-            await axios.post(
-                apiRoutes.delete_publication_url,
-                { Id_publicacion: post.Id_publicacion },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
+            await api.publications.delete(post.id);
             window.location.reload();
         } catch (err: any) {
-            if (err?.response?.status === 401) triggerAuth("Para eliminar una publicación necesitas iniciar sesión.");
-            if (err?.response?.status === 403) triggerAuth("No tienes permisos para eliminar esta publicación.");
+            if (err.message.includes("401")) triggerAuth("Para eliminar una publicación necesitas iniciar sesión.");
+            else if (err.message.includes("403")) triggerAuth("No tienes permisos para eliminar esta publicación.");
         }
     };
 

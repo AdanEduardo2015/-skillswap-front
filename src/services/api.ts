@@ -1,242 +1,265 @@
 import axios from 'axios';
-import type { AxiosRequestConfig } from 'axios';
 import { apiRoutes, getToken, isUserAuthenticated } from '../utils/GlobalVariables';
 import type {
-  Publication,
-  PublicationsListResponse,
-  NotificationsResponse,
-  CreateCommentResponse,
+    Publication,
+    PublicationsListResponse,
+    NotificationsResponse,
+    CreateCommentResponse,
+    UserSummary,
+    CommentData,
+    PaginatedResponse,
 } from '../types';
 
 // ===========================
-// Authenticated Axios Helper
+// Axios Instance Configuration
 // ===========================
 
-async function authHeaders(): Promise<Record<string, string>> {
-  const token = await getToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
+const apiClient = axios.create({
+    timeout: 15000,
+});
 
-async function authRequest<T>(config: AxiosRequestConfig): Promise<T> {
-  const headers = await authHeaders();
-  const res = await axios({ ...config, headers: { ...config.headers, ...headers } });
-  return res.data;
-}
+// Request Interceptor: Attach Auth Token
+apiClient.interceptors.request.use(async (config) => {
+    const token = await getToken();
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+}, (error) => Promise.reject(error));
 
-// ===========================
-// Publications
-// ===========================
-
-export async function listPublications(page: number, limit: number = 10): Promise<{ publications: Publication[]; hasMore: boolean }> {
-  const isAuth = await isUserAuthenticated();
-  const token = isAuth ? await getToken() : null;
-  const url = isAuth ? apiRoutes.list_publications_user_auth_url : apiRoutes.list_publications_url;
-
-  const res = await axios.get(url, {
-    params: { page, limit },
-    ...(isAuth && token && { headers: { Authorization: `Bearer ${token}` } }),
-  });
-
-  if (Array.isArray(res.data)) {
-    return { publications: res.data, hasMore: false };
-  }
-
-  return {
-    publications: res.data.publicaciones || [],
-    hasMore: res.data.hasMore ?? false,
-  };
-}
-
-export async function listUserPublications(
-  email: string,
-  page: number,
-  limit: number = 10
-): Promise<PublicationsListResponse & { hasMore: boolean }> {
-  const data = await authRequest<PublicationsListResponse>({
-    method: 'POST',
-    url: apiRoutes.list_user_publications_user_auth_url,
-    data: { Correo_electronico: email },
-    params: { page, limit },
-  });
-
-  const pubs = Array.isArray(data) ? data as unknown as Publication[] : (data.publicaciones || []);
-  const hasMore = !Array.isArray(data) && (data as any).hasMore ? true : false;
-
-  return { ...data, publicaciones: pubs, hasMore };
-}
-
-export async function createPublication(payload: {
-  Contenido: string;
-  Url_imagen?: string | null;
-  Url_video?: string | null;
-  Lat?: number | null;
-  Long?: number | null;
-}): Promise<void> {
-  await authRequest({ method: 'POST', url: apiRoutes.create_publication_url, data: payload });
-}
-
-export async function deletePublication(publicationId: string): Promise<void> {
-  await authRequest({
-    method: 'POST',
-    url: apiRoutes.delete_publication_url,
-    data: { Id_publicacion: publicationId },
-  });
-}
-
-export async function editPublication(payload: {
-  Id_publicacion: string;
-  Contenido: string;
-  Url_imagen?: string | null;
-  Url_video?: string | null;
-}): Promise<void> {
-  await authRequest({ method: 'POST', url: apiRoutes.edit_publication_url, data: payload });
-}
-
-export async function getPublication(publicationId: string): Promise<Publication> {
-  const isAuth = await isUserAuthenticated();
-  const url = isAuth ? apiRoutes.list_publication_user_auth_url : apiRoutes.list_publication_url;
-  const token = isAuth ? await getToken() : null;
-
-  const res = await axios.get(url, {
-    params: { Id_publicacion: publicationId },
-    ...(isAuth && token && { headers: { Authorization: `Bearer ${token}` } }),
-  });
-
-  return res.data;
-}
+// Response Interceptor: Error Handling Standardization
+apiClient.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        const message = error.response?.data?.message || error.message || 'Error desconocido';
+        console.error('[API Error]:', message);
+        return Promise.reject(new Error(message));
+    }
+);
 
 // ===========================
-// Likes & Shares
+// Data Mappers (Standardizing Cocktail of Conventions)
 // ===========================
 
-export async function likePublication(publicationId: string): Promise<void> {
-  await authRequest({
-    method: 'POST',
-    url: apiRoutes.like_publications_url,
-    data: { Id_objetivo: publicationId },
-  });
-}
+const mapUser = (raw: any): UserSummary => ({
+    email: raw.email || raw.Correo_electronico || raw.correo || '',
+    username: raw.username || raw.nombre_usuario || raw.Nombre_usuario || 'Usuario',
+    profilePicUrl: raw.profilePicture || raw.profilePicUrl || raw.Url_foto_perfil || raw.url_foto_perfil || raw.foto_perfil || null,
+    role: raw.role || 'user',
+});
 
-export async function unlikePublication(publicationId: string): Promise<void> {
-  await authRequest({
-    method: 'POST',
-    url: apiRoutes.unlike_publications_url,
-    data: { Id_objetivo: publicationId },
-  });
-}
+const mapComment = (raw: any): CommentData => ({
+    id: raw.id || raw.id_comentario || '',
+    content: raw.content || raw.contenido || '',
+    createdAt: raw.createdAt || raw.fecha_comentario || '',
+    canDelete: raw.canDelete ?? raw.Can_delete ?? false,
+    canUpdate: raw.canUpdate ?? raw.Can_update ?? false,
+    user: raw.user ? mapUser(raw.user) : (raw.Usuario ? mapUser(raw.Usuario) : undefined),
+});
 
-export async function sharePublication(publicationId: string): Promise<void> {
-  await authRequest({
-    method: 'POST',
-    url: apiRoutes.share_publication_url,
-    data: { Id_objetivo: publicationId },
-  });
-}
-
-// ===========================
-// Comments
-// ===========================
-
-export async function createComment(publicationId: string, content: string): Promise<CreateCommentResponse> {
-  return authRequest<CreateCommentResponse>({
-    method: 'POST',
-    url: apiRoutes.comment_publication_url,
-    data: { Id_objetivo: publicationId, Contenido: content },
-  });
-}
-
-export async function editComment(commentId: string, content: string): Promise<void> {
-  await authRequest({
-    method: 'PUT',
-    url: apiRoutes.edit_comment_url,
-    data: { Id_comentario: commentId, Contenido: content },
-  });
-}
-
-export async function deleteComment(commentId: string): Promise<void> {
-  await authRequest({
-    method: 'POST',
-    url: apiRoutes.delete_comment_url,
-    data: { Id_comentario: commentId },
-  });
-}
+const mapPublication = (raw: any): Publication => ({
+    id: raw.id || raw.Id_publicacion || '',
+    content: raw.content || raw.Contenido || '',
+    imageUrl: raw.imageUrl || raw.Url_imagen || null,
+    videoUrl: raw.videoUrl || raw.Url_video || null,
+    lat: raw.lat ? parseFloat(raw.lat) : (raw.Lat ? parseFloat(raw.Lat) : null),
+    long: raw.long ? parseFloat(raw.long) : (raw.Long ? parseFloat(raw.Long) : null),
+    createdAt: raw.createdAt || raw.Fecha_publicacion || '',
+    user: raw.user ? mapUser(raw.user) : (raw.Usuario ? mapUser(raw.Usuario) : undefined),
+    likesCount: raw.likesCount || raw.likes?.total || 0,
+    sharesCount: raw.sharesCount || raw.compartidos?.total || 0,
+    isLiked: raw.isLiked ?? raw.is_Liked ?? raw.Is_Liked ?? raw.is_liked ?? false,
+    canDelete: raw.canDelete ?? raw.Can_delete ?? false,
+    canUpdate: raw.canUpdate ?? raw.Can_update ?? false,
+    comments: {
+        total: raw.commentsCount || raw.comentarios?.total || 0,
+        list: (raw.comments?.list || raw.comentarios?.lista || []).map(mapComment),
+    },
+});
 
 // ===========================
-// Notifications
+// API Services
 // ===========================
 
-export async function listNotifications(): Promise<NotificationsResponse> {
-  return authRequest<NotificationsResponse>({
-    method: 'GET',
-    url: apiRoutes.messages_account_url,
-  });
-}
+export const api = {
+    publications: {
+        list: async (limit: number = 10, nextToken?: string | null): Promise<PublicationsListResponse> => {
+            const isAuth = await isUserAuthenticated();
+            const url = isAuth ? apiRoutes.list_publications_user_auth_url : apiRoutes.list_publications_url;
+            const res = await apiClient.get(url, { params: { limit, nextToken } });
+            
+            const rawItems = res.data.items || res.data.publicaciones || [];
+            const newNextToken = res.data.nextToken || null;
+            
+            return {
+                items: rawItems.map(mapPublication),
+                hasMore: !!newNextToken,
+                nextToken: newNextToken
+            };
+        },
 
-export async function readNotification(notificationId: string): Promise<void> {
-  await authRequest({
-    method: 'POST',
-    url: apiRoutes.read_notification_url,
-    data: { Id_notificacion: notificationId },
-  });
-}
+        create: (payload: Partial<Publication>) => 
+            apiClient.post(apiRoutes.create_publication_url, {
+                content: payload.content,
+                imageUrl: payload.imageUrl,
+                videoUrl: payload.videoUrl,
+                lat: payload.lat,
+                long: payload.long
+            }),
 
-export async function deleteAllNotifications(): Promise<void> {
-  await authRequest({
-    method: 'POST',
-    url: apiRoutes.delete_all_notifications_url,
-    data: {},
-  });
-}
+        delete: (id: string) => 
+            apiClient.post(apiRoutes.delete_publication_url, { id }),
 
-// ===========================
-// Search
-// ===========================
+        edit: (id: string, payload: Partial<Publication>) =>
+            apiClient.post(apiRoutes.edit_publication_url, {
+                id,
+                content: payload.content,
+                imageUrl: payload.imageUrl,
+                videoUrl: payload.videoUrl
+            }),
 
-export async function searchResources(query: string): Promise<any> {
-  const isAuth = await isUserAuthenticated();
-  const url = isAuth ? apiRoutes.search_resources_user_auth_url : apiRoutes.search_resources_url;
-  const token = isAuth ? await getToken() : null;
+        get: async (id: string): Promise<Publication> => {
+            const isAuth = await isUserAuthenticated();
+            const url = isAuth ? apiRoutes.list_publication_user_auth_url : apiRoutes.list_publication_url;
+            const res = await apiClient.get(url, { params: { id } });
+            return mapPublication(res.data);
+        },
 
-  const res = await axios.get(url, {
-    params: { query },
-    ...(isAuth && token && { headers: { Authorization: `Bearer ${token}` } }),
-  });
+        listByUser: async (email: string, limit: number = 10, nextToken?: string | null): Promise<PublicationsListResponse> => {
+            const isAuth = await isUserAuthenticated();
+            const url = isAuth ? apiRoutes.list_user_publications_user_auth_url : apiRoutes.list_user_publications_url;
+            // Note: list-user-publications is defined as POST in serverless.yml to support email in body easily
+            const res = await apiClient.post(url, { email }, { params: { limit, nextToken } });
+            
+            const rawItems = res.data.items || res.data.publicaciones || [];
+            const newNextToken = res.data.nextToken || null;
+            const userProfile = res.data.user || res.data.usuario;
+            
+            return {
+                items: rawItems.map(mapPublication),
+                hasMore: !!newNextToken,
+                nextToken: newNextToken,
+                userProfile: userProfile ? mapUser(userProfile) : undefined
+            };
+        },
+    },
 
-  return res.data;
-}
+    comments: {
+        list: async (publicationId: string, limit: number = 20, nextToken?: string | null): Promise<PaginatedResponse<CommentData>> => {
+            const res = await apiClient.get(apiRoutes.list_comments_url, { params: { publicationId, limit, nextToken } });
+            const rawItems = res.data.items || [];
+            const newNextToken = res.data.nextToken || null;
+            return {
+                items: rawItems.map(mapComment),
+                hasMore: !!newNextToken,
+                nextToken: newNextToken
+            };
+        },
+        create: async (publicationId: string, content: string): Promise<CreateCommentResponse> => {
+            const res = await apiClient.post(apiRoutes.comment_publication_url, {
+                publicationId,
+                content
+            });
+            return { id: res.data.id || res.data.comment?.id };
+        },
+        delete: (id: string) => 
+            apiClient.post(apiRoutes.delete_comment_url, { id }),
+        edit: (id: string, content: string) =>
+            apiClient.post(apiRoutes.edit_comment_url, { id, content }),
+    },
 
-// ===========================
-// Admin
-// ===========================
+    social: {
+        like: (id: string) => apiClient.post(apiRoutes.like_publications_url, { targetId: id }),
+        unlike: (id: string) => apiClient.post(apiRoutes.unlike_publications_url, { targetId: id }),
+        share: (id: string) => apiClient.post(apiRoutes.share_publication_url, { targetId: id }),
+    },
 
-export async function makeModerator(email: string): Promise<void> {
-  await authRequest({
-    method: 'POST',
-    url: apiRoutes.make_moderator_url,
-    data: { Correo_electronico: email },
-  });
-}
+    notifications: {
+        list: async (limit: number = 20, nextToken?: string | null): Promise<NotificationsResponse & { hasMore: boolean, nextToken: string | null }> => {
+            const res = await apiClient.get(apiRoutes.messages_account_url, { params: { limit, nextToken } });
+            const raw = res.data.notifications || [];
+            const newNextToken = res.data.nextToken || null;
+            return {
+                notifications: raw.map((n: any) => ({
+                    id: n.id || n.id_notificacion || '',
+                    message: n.message || n.mensaje || '',
+                    publicationId: n.publicationId || n.id_publicacion || '',
+                    user: n.user ? mapUser(n.user) : (n.usuario ? mapUser(n.usuario) : undefined),
+                    createdAt: n.createdAt || n.fecha_creacion || new Date().toISOString()
+                })),
+                hasMore: !!newNextToken,
+                nextToken: newNextToken
+            };
+        },
+        read: (id: string) => apiClient.post(apiRoutes.read_notification_url, { id }),
+        deleteAll: () => apiClient.post(apiRoutes.delete_all_notifications_url, {}),
+    },
 
-export async function removeModerator(email: string): Promise<void> {
-  await authRequest({
-    method: 'POST',
-    url: apiRoutes.remove_moderator_url,
-    data: { Correo_electronico: email },
-  });
-}
+    users: {
+        create: (payload: { email: string; username: string }) =>
+            apiClient.post(apiRoutes.create_user_url, {
+                email: payload.email,
+                username: payload.username,
+            }),
+        update: (payload: { username?: string; profilePicUrl?: string; bio?: string; location?: string }) => 
+            apiClient.post(apiRoutes.update_user_url, {
+                username: payload.username,
+                profilePicture: payload.profilePicUrl,
+                bio: payload.bio,
+                location: payload.location
+            }),
+        delete: () => apiClient.post(apiRoutes.delete_account_url, {}),
+        updateFcmToken: (fcmToken: string) => apiClient.post(apiRoutes.update_fcm_token_url, { fcmToken }),
+    },
 
-export async function banUser(email: string): Promise<void> {
-  await authRequest({
-    method: 'POST',
-    url: apiRoutes.ban_user_url,
-    data: { Correo_electronico: email },
-  });
-}
+    media: {
+        getPresignedUrl: async (fileName: string, fileType: string, type: "publications" | "profile"): Promise<{ uploadUrl: string; fileUrl: string }> => {
+            const res = await apiClient.post(apiRoutes.push_resouce_url, {
+                fileName,
+                fileType,
+                type
+            });
+            return res.data;
+        },
+    },
 
-export async function unbanUser(email: string): Promise<void> {
-  await authRequest({
-    method: 'POST',
-    url: apiRoutes.unban_user_url,
-    data: { Correo_electronico: email },
-  });
-}
+    search: {
+        list: async (query: string, limit: number = 20, nextToken?: string | null): Promise<PaginatedResponse<Publication>> => {
+            const isAuth = await isUserAuthenticated();
+            const url = isAuth ? apiRoutes.search_resources_user_auth_url : apiRoutes.search_resources_url;
+            const res = await apiClient.get(url, { params: { q: query, limit, nextToken } });
+            const raw = res.data.items || res.data.publicaciones || [];
+            const newNextToken = res.data.nextToken || null;
+            return {
+                items: raw.map(mapPublication),
+                hasMore: !!newNextToken,
+                nextToken: newNextToken
+            };
+        },
+    },
+
+    admin: {
+        makeModerator: (email: string) => apiClient.post(apiRoutes.make_moderator_url, { email }),
+        removeModerator: (email: string) => apiClient.post(apiRoutes.remove_moderator_url, { email }),
+        banUser: (email: string) => apiClient.post(apiRoutes.ban_user_url, { email }),
+        unbanUser: (email: string) => apiClient.post(apiRoutes.unban_user_url, { email }),
+        updateUser: (email: string, payload: { username?: string; profilePicUrl?: string }) =>
+            apiClient.post(apiRoutes.update_user_url, {
+                email, // For admin edits, we specify the target email
+                username: payload.username,
+                profilePicture: payload.profilePicUrl
+            }),
+    }
+};
+
+// Deprecated exports for backward compatibility while refactoring components
+export const listPublications = api.publications.list;
+export const createPublication = api.publications.create;
+export const deletePublication = api.publications.delete;
+export const editPublication = api.publications.edit;
+export const createComment = api.comments.create;
+export const deleteComment = api.comments.delete;
+export const likePublication = api.social.like;
+export const unlikePublication = api.social.unlike;
+export const sharePublication = api.social.share;
+export const listNotifications = api.notifications.list;

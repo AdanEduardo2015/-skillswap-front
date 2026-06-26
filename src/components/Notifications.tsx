@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { apiRoutes, getToken } from "../utils/GlobalVariables";
+import { api } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { Box, Flex, Heading, Text, Image, VStack, Button } from "@chakra-ui/react";
 import { useNotificationStore } from "../utils/NotificationStore";
@@ -17,13 +16,8 @@ function Notifications() {
         setIsLoading(true);
         const loadNotifications = async () => {
             try {
-                const token = await getToken();
-                const res = await axios.get(apiRoutes.messages_account_url, {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-                const data = res.data.notifications || [];
+                const res = await api.notifications.list();
+                const data = res.notifications || [];
                 setNotificaciones(data);
 
                 if (data.length === 0) {
@@ -40,10 +34,9 @@ function Notifications() {
 
     const leerNotificacion = async (id: string) => {
         const previousNotifications = [...notificaciones];
-        const token = await getToken();
 
         setNotificaciones(prev => {
-            const newNotifs = prev.filter(n => n.id_notificacion !== id);
+            const newNotifs = prev.filter(n => n.id !== id);
             if (newNotifs.length === 0) {
                 setHasUnreadNotifications(false);
             }
@@ -51,11 +44,7 @@ function Notifications() {
         });
 
         try {
-            await axios.post(
-                apiRoutes.read_notification_url,
-                { Id_notificacion: id },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            await api.notifications.read(id);
         } catch {
             setNotificaciones(previousNotifications);
             setHasUnreadNotifications(previousNotifications.length > 0);
@@ -69,12 +58,7 @@ function Notifications() {
         setHasUnreadNotifications(false);
 
         try {
-            const token = await getToken();
-            await axios.post(
-                apiRoutes.delete_all_notifications_url,
-                {},
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            await api.notifications.deleteAll();
         } catch (error) {
             console.error(error);
             setNotificaciones(previousNotifications);
@@ -124,7 +108,7 @@ function Notifications() {
             {!isLoading && hasNotificaciones && (
                 <VStack w={["90%", "75%"]} mx="auto" gap={3}>
                     {notificaciones.map((noti) => (
-                        <React.Fragment key={noti.id_notificacion}>
+                        <React.Fragment key={noti.id}>
                             <Flex
                                 align="start"
                                 p={1}
@@ -136,14 +120,14 @@ function Notifications() {
                                 borderRadius="md"
                                 cursor="pointer"
                                 onClick={() => {
-                                    leerNotificacion(noti.id_notificacion);
-                                    navigate("/publication?post=" + noti.id_publicacion);
+                                    leerNotificacion(noti.id);
+                                    navigate("/publication?post=" + noti.publicationId);
                                 }}
                             >
                                 <Flex mb={2} align="center">
                                     <Image
-                                        src={noti.usuario?.url_foto_perfil ?? "/Profile.svg"}
-                                        alt={noti.usuario?.nombre_usuario ?? "Usuario"}
+                                        src={noti.user?.profilePicUrl ?? "/Profile.svg"}
+                                        alt={noti.user?.username ?? "Usuario"}
                                         cursor="pointer"
                                         userSelect="none"
                                         mr={2}
@@ -151,7 +135,7 @@ function Notifications() {
                                         boxSize="1.3rem"
                                     />
                                     <Box>
-                                        <Text as="span">{noti.mensaje}</Text>
+                                        <Text as="span">{noti.message}</Text>
                                     </Box>
                                 </Flex>
 
@@ -164,7 +148,7 @@ function Notifications() {
                                     filter="none"
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        leerNotificacion(noti.id_notificacion);
+                                        leerNotificacion(noti.id);
                                     }}
                                 />
                             </Flex>

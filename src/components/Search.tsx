@@ -1,39 +1,14 @@
 import { useState } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { apiRoutes, isUserAuthenticated, getToken } from "../utils/GlobalVariables";
+import { api } from "../services/api";
 import PublicationCard from "./PublicationCard";
 import ImageModal from "./modals/ImageModal";
 import { Box, Flex, Heading, Input, Button } from "@chakra-ui/react";
 import { SkeletonFeed } from "./Skeletons";
-
-function normalizePublications(data: any[]) {
-    return data.map(p => ({
-        ...p,
-        Id_publicacion: p.Id_publicacion ?? p.id_publicacion,
-        Contenido: p.Contenido ?? p.contenido,
-        Fecha_publicacion: p.Fecha_publicacion ?? p.fecha_publicacion,
-        Url_imagen: p.Url_imagen ?? p.url_imagen,
-        Url_video: p.Url_video ?? p.url_video,
-        Lat: p.Lat ?? p.lat,
-        Long: p.Long ?? p.long,
-        Can_delete: p.Can_delete ?? p.can_delete,
-        Usuario: p.Usuario ?? p.usuario ?? {
-            nombre_usuario: "Usuario",
-            Url_foto_perfil: null,
-            Correo_electronico: null
-        },
-        is_Liked: p.is_Liked ?? p.is_liked,
-        likes: p?.likes ?? { total: 0 },
-        comentarios: p?.comentarios ?? { total: 0 },
-        compartidos: p?.compartidos ?? { total: 0 },
-    }));
-}
+import type { Publication } from "../types";
 
 function Search() {
-    const navigate = useNavigate();
     const [text, setText] = useState("");
-    const [resultados, setResultados] = useState<any[]>([]);
+    const [resultados, setResultados] = useState<Publication[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
     const [imagenSeleccionada, setImagenSeleccionada] = useState<string | null>(null);
@@ -46,29 +21,8 @@ function Search() {
         setIsLoading(true);
 
         try {
-            const isAuth = await isUserAuthenticated();
-            const token = isAuth ? await getToken() : null;
-
-            const res = await axios.post(
-                (isAuth ? apiRoutes.search_resources_user_auth_url : apiRoutes.search_resources_url),
-                { texto: lowered },
-                {
-                    ...(isAuth && {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }),
-                }
-            );
-
-            let newPosts = [];
-            if (Array.isArray(res.data)) {
-                newPosts = res.data;
-            } else {
-                newPosts = res.data?.publicaciones || [];
-            }
-
-            setResultados(normalizePublications(newPosts));
+            const res = await api.search.list(lowered);
+            setResultados(res.items);
         } catch {
             setResultados([]);
         } finally {
@@ -130,12 +84,9 @@ function Search() {
                     <>
                         {resultados.map(post => (
                             <PublicationCard
-                                key={post.Id_publicacion}
+                                key={post.id}
                                 post={post}
                                 onImageClick={setImagenSeleccionada}
-                                onClick={() =>
-                                    navigate(`/publication?post=${post.Id_publicacion}`)
-                                }
                             />
                         ))}
 

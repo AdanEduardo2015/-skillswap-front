@@ -1,14 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { apiRoutes, useSearchParamsGlobal, isUserAuthenticated, getToken } from "../utils/GlobalVariables";
+import { useSearchParamsGlobal } from "../utils/GlobalVariables";
 import { useUserData } from "../utils/UserStore";
+import { api } from "../services/api";
 import PublicationCard from "./PublicationCard";
 import ImageModal from "./modals/ImageModal";
 import { Box, Flex, Heading, Text, Image, VStack, Button } from "@chakra-ui/react";
 import ConfirmModal from "./modals/ConfirmModal";
 import { SkeletonProfileHeader, SkeletonFeed } from "./Skeletons";
 import InfiniteScroll from "react-infinite-scroll-component";
+import type { Publication } from "../types";
 
 const formatRole = (role: string) => {
   const roles: Record<string, string> = {
@@ -31,8 +32,8 @@ function UserProfile() {
   const [accion, setAccion] = useState<"make_moderator" | "remove_moderator" | "ban" | "unban" | null>(null);
   const [isLoadingAction, setIsLoadingAction] = useState<boolean>(false);
 
-  const [posts, setPosts] = useState<any[]>([]);
-  const [page, setPage] = useState(1);
+  const [posts, setPosts] = useState<Publication[]>([]);
+  const [nextToken, setNextToken] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
 
   const [userProfile, setUserProfile] = useState({
@@ -57,38 +58,26 @@ function UserProfile() {
     setTimeout(() => setToastMessage(null), 3000);
   }, []);
 
-  const loadUserFeed = useCallback(async (pageNumber: number, isInitial: boolean = false) => {
+  const loadUserFeed = useCallback(async (token: string | null = null, isInitial: boolean = false) => {
+    if (!userEmail) return;
     if (isInitial) setStatus({ loading: true, notFound: false });
 
     try {
-      const isAuth = await isUserAuthenticated();
-      const token = isAuth ? await getToken() : null;
-      const url = isAuth ? apiRoutes.list_user_publications_user_auth_url : apiRoutes.list_user_publications_url;
+      const res = await api.publications.listByUser(userEmail, 10, token);
 
-      const res = await axios.post(
-        url,
-        { Correo_electronico: userEmail },
-        {
-          params: { page: pageNumber, limit: 10 },
-          ...(isAuth && { headers: { Authorization: `Bearer ${token}` } }),
-        }
-      );
+      if (res.userProfile) {
+        setUserProfile({
+          pic: res.userProfile.profilePicUrl || "",
+          name: res.userProfile.username || "Usuario",
+          role: res.userProfile.role || "users",
+        });
+      }
 
-      const userData = res.data.usuario || {};
-      setUserProfile({
-        pic: userData.foto_perfil || "",
-        name: userData.nombre_usuario || "Usuario",
-        role: userData.role || "users",
-      });
-
-      const publicacionData = res.data.publicaciones || res.data;
-      const newPosts = Array.isArray(publicacionData) ? publicacionData : [];
-      const more = res.data.hasMore ?? false;
-
-      setPosts((prev) => (pageNumber === 1 ? newPosts : [...prev, ...newPosts]));
-      setHasMore(more);
+      setPosts((prev) => (isInitial ? res.items : [...prev, ...res.items]));
+      setHasMore(res.hasMore);
+      setNextToken(res.nextToken ?? null);
     } catch (err: any) {
-      if (err?.response?.data?.error === "Usuario no encontrado" || err?.response?.status === 404) {
+      if (err.message === "Usuario no encontrado" || err.message?.includes("404")) {
         if (isInitial) setStatus((prev) => ({ ...prev, notFound: true }));
       }
       setHasMore(false);
@@ -98,28 +87,24 @@ function UserProfile() {
   }, [userEmail]);
 
   useEffect(() => {
-    if (userEmail) loadUserFeed(1, true);
+    if (userEmail) loadUserFeed(null, true);
   }, [userEmail, loadUserFeed]);
 
   const fetchMoreData = () => {
-    const nextPage = page + 1;
-    setPage(nextPage);
-    loadUserFeed(nextPage);
+    loadUserFeed(nextToken);
   };
 
   const handleConfirmAction = async () => {
+    if (!userEmail || !accion) return;
     setIsLoadingAction(true);
     try {
-      const isAuth = await isUserAuthenticated();
-      const token = isAuth ? await getToken() : null;
-      const headers = isAuth ? { Authorization: `Bearer ${token}` } : {};
-
-      const urlMap = {
-        make_moderator: apiRoutes.make_moderator_url,
-        remove_moderator: apiRoutes.remove_moderator_url,
-        ban: apiRoutes.ban_user_url,
-        unban: apiRoutes.unban_user_url,
+      const actionMap: Record<string, (email: string) => Promise<any>> = {
+        make_moderator: api.admin.makeModerator,
+        remove_moderator: api.admin.removeModerator,
+        ban: api.admin.banUser,
+        unban: api.admin.unbanUser,
       };
+
       const mensajeExito: Record<string, string> = {
         make_moderator: "✅ El usuario ahora es moderador",
         remove_moderator: "✅ Se eliminaron los privilegios de moderador",
@@ -127,8 +112,8 @@ function UserProfile() {
         unban: "✅ El usuario ha sido desbaneado",
       };
 
-      await axios.post(urlMap[accion!], { Correo_electronico: userEmail }, { headers });
-      showToast(mensajeExito[accion!]);
+      await actionMap[accion](userEmail);
+      showToast(mensajeExito[accion]);
 
       setUserProfile((prev) => {
         let newRole = prev.role;
@@ -140,12 +125,12 @@ function UserProfile() {
         return { ...prev, role: newRole };
       });
     } catch {
-      showToast(accion ? ({
+      showToast(({
         make_moderator: "❌ Hubo un problema al hacer moderador al usuario",
         remove_moderator: "❌ Hubo un problema al eliminar privilegios",
         ban: "❌ Hubo un problema al banear al usuario",
         unban: "❌ Hubo un problema al desbanear al usuario",
-      })[accion] : "❌ Error desconocido");
+      })[accion] || "❌ Error desconocido");
     } finally {
       setIsLoadingAction(false);
       setAccion(null);
@@ -231,8 +216,8 @@ function UserProfile() {
             endMessage={<Text color="gray.500" textAlign="center" mt={6} mb={4} fontSize="sm">No hay más publicaciones por cargar</Text>}
             style={{ overflow: "hidden" }}
           >
-            {posts.map((post: any) => (
-              <PublicationCard key={post.Id_publicacion} post={post} onImageClick={setImagenSeleccionada} />
+            {posts.map((post) => (
+              <PublicationCard key={post.id} post={post} onImageClick={setImagenSeleccionada} />
             ))}
           </InfiniteScroll>
         )}

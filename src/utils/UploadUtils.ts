@@ -1,5 +1,4 @@
-import axios from "axios";
-import { apiRoutes, getToken } from "./GlobalVariables";
+import { api } from "../services/api";
 
 export const sanitizeFileName = (fileName: string): string => {
     return fileName
@@ -11,20 +10,11 @@ export const sanitizeFileName = (fileName: string): string => {
 
 export const uploadFile = async (file: File, type: "publications" | "profile"): Promise<string | null> => {
     try {
-        const token = await getToken();
-        if (!token) throw new Error("No se pudo obtener el token de autenticación");
-
-        const { data } = await axios.post(
-            apiRoutes.push_resouce_url,
-            {
-                fileName: sanitizeFileName(file.name),
-                fileType: file.type,
-                type: type
-            },
-            { headers: { Authorization: `Bearer ${token}` } }
+        const { uploadUrl, fileUrl } = await api.media.getPresignedUrl(
+            sanitizeFileName(file.name),
+            file.type,
+            type
         );
-
-        const { uploadUrl, fileUrl } = data;
 
         await fetch(uploadUrl, {
             method: "PUT",

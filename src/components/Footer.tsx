@@ -15,13 +15,14 @@ function Footer() {
             <Box
                 position="sticky"
                 bottom={0}
-                borderTop="0.1rem solid #787878"
+                borderTop="0.1rem solid var(--text-color)"
                 py={2}
-                bg="#000000"
+                bg="var(--bg-color)"
                 textAlign="center"
                 zIndex={10}
                 userSelect="none"
                 w="100%"
+                transition="background-color 0.3s ease, border-top-color 0.3s ease"
             >
                 <Flex justify="space-around" align="center">
                     <Image
@@ -64,7 +65,7 @@ function Footer() {
                                 h="10px"
                                 bg="#3b82f6"
                                 borderRadius="full"
-                                border="2px solid black"
+                                border="2px solid var(--bg-color)"
                                 animation="pulse-glow 2s infinite"
                             />
                         )}

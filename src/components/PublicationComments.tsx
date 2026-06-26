@@ -8,7 +8,20 @@ import { Box, Flex, Text, Textarea, Button, Spinner, Image, Link } from "@chakra
 import { useNavigate } from "react-router-dom";
 
 export default function PublicationComments({ publication, showInput, setShowInput, onImageClick, onCommentAdded, onCommentDeleted }: any) {
-    const { comments, isCreatingComment, showAuthModal, setShowAuthModal, authMessage, handleAddComment, handleEditComment, handleDeleteComment } = useCommentActions(publication.comentarios, publication.Id_publicacion, onCommentAdded, onCommentDeleted);
+    const { 
+        comments, 
+        isCreatingComment, 
+        isLoadingComments,
+        hasMore,
+        nextToken,
+        fetchComments,
+        showAuthModal, 
+        setShowAuthModal, 
+        authMessage, 
+        handleAddComment, 
+        handleEditComment, 
+        handleDeleteComment 
+    } = useCommentActions(publication.comments, publication.id, onCommentAdded, onCommentDeleted);
     const { name, profilePictureUrl, email: globalEmail, role: globalRole } = useUserData();
     const isBannedUser = globalRole === "banned";
     const [newComment, setNewComment] = useState("");
@@ -69,7 +82,7 @@ export default function PublicationComments({ publication, showInput, setShowInp
     };
 
     const submitEditComment = async (id: string) => {
-        if (!editingContent.trim() || editingContent === comments.find((c: any) => c.id_comentario === id)?.contenido) {
+        if (!editingContent.trim() || editingContent === comments.find((c: any) => c.id === id)?.content) {
             setEditingCommentId(null);
             return;
         }
@@ -156,19 +169,25 @@ export default function PublicationComments({ publication, showInput, setShowInp
                 </Flex>
             )}
 
-            {(!comments || comments.length === 0) && (!showInput || isBannedUser) && (
+            {isLoadingComments && comments.length === 0 && (
+                <Flex justify="center" my={5}>
+                    <Spinner color="white" />
+                </Flex>
+            )}
+
+            {(!comments || comments.length === 0) && !isLoadingComments && (!showInput || isBannedUser) && (
                 <Text as="h4" color="white" textAlign="center" mb={3} fontSize="lg" fontWeight="bold">
                     No hay comentarios en la publicación
                 </Text>
             )}
 
             {comments.map((c: any, index: number) => (
-                <Box key={c.id_comentario || `comment-${index}`}>
+                <Box key={c.id || `comment-${index}`}>
                     <Flex my={3}>
                         <Box>
                             <Image
-                                src={c.Usuario?.Url_foto_perfil ?? c.Usuario?.url_foto_perfil ?? "/Profile.svg"}
-                                alt={c.Usuario?.Nombre_usuario ?? c.Usuario?.nombre_usuario ?? "Usuario"}
+                                src={c.user?.profilePicUrl ?? "/Profile.svg"}
+                                alt={c.user?.username ?? "Usuario"}
                                 cursor="pointer"
                                 userSelect="none"
                                 borderRadius="full"
@@ -177,8 +196,7 @@ export default function PublicationComments({ publication, showInput, setShowInp
                                 objectFit="cover"
                                 onClick={() =>
                                     onImageClick(
-                                        c.Usuario?.Url_foto_perfil ??
-                                        c.Usuario?.url_foto_perfil ??
+                                        c.user?.profilePicUrl ??
                                         "/Profile.svg"
                                     )
                                 }
@@ -190,15 +208,15 @@ export default function PublicationComments({ publication, showInput, setShowInp
                                 <Text userSelect="none">
                                     <Link
                                         color="white"
-                                        onClick={() => navigate("/profile?user=" + c.Usuario?.Correo_electronico)}
+                                        onClick={() => navigate("/profile?user=" + c.user?.email)}
                                         _hover={{ textDecoration: "underline" }}
                                     >
-                                        {c.Usuario?.Nombre_usuario ?? c.Usuario?.nombre_usuario ?? "Usuario"}
+                                        {c.user?.username ?? "Usuario"}
                                     </Link>
                                 </Text>
-                                <Flex align="center" gap={3} position="relative" ref={showOptionsId === c.id_comentario ? optionsRef : null}>
-                                    <Text>{formatFecha(c.fecha_comentario)}</Text>
-                                    {c.Can_delete && !isBannedUser && (
+                                <Flex align="center" gap={3} position="relative" ref={showOptionsId === c.id ? optionsRef : null}>
+                                    <Text>{formatFecha(c.createdAt)}</Text>
+                                    {c.canDelete && !isBannedUser && (
                                         <>
                                             <Image
                                                 src="/Show_Options.svg"
@@ -208,10 +226,10 @@ export default function PublicationComments({ publication, showInput, setShowInp
                                                 height="1.2rem"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    setShowOptionsId(showOptionsId === c.id_comentario ? null : c.id_comentario);
+                                                    setShowOptionsId(showOptionsId === c.id ? null : c.id);
                                                 }}
                                             />
-                                            {showOptionsId === c.id_comentario && (
+                                            {showOptionsId === c.id && (
                                                 <Flex
                                                     direction="column"
                                                     position="absolute"
@@ -224,7 +242,7 @@ export default function PublicationComments({ publication, showInput, setShowInp
                                                     py={2}
                                                     w="150px"
                                                 >
-                                                    {c.Can_update && (
+                                                    {c.canUpdate && (
                                                         <Flex
                                                             align="center"
                                                             px={4}
@@ -234,8 +252,8 @@ export default function PublicationComments({ publication, showInput, setShowInp
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 setShowOptionsId(null);
-                                                                setEditingCommentId(c.id_comentario);
-                                                                setEditingContent(c.contenido);
+                                                                setEditingCommentId(c.id);
+                                                                setEditingContent(c.content);
                                                             }}
                                                         >
                                                             <Image src="/Edit.svg" width="20px" mr={3} alt="Editar" filter="none" />
@@ -251,7 +269,7 @@ export default function PublicationComments({ publication, showInput, setShowInp
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             setShowOptionsId(null);
-                                                            openDeleteModal(c.id_comentario);
+                                                            openDeleteModal(c.id);
                                                         }}
                                                     >
                                                         <Image src="/Delete.svg" width="20px" mr={3} alt="Eliminar" />
@@ -264,7 +282,7 @@ export default function PublicationComments({ publication, showInput, setShowInp
                                 </Flex>
                             </Flex>
 
-                            {editingCommentId === c.id_comentario ? (
+                            {editingCommentId === c.id ? (
                                 <Box mb={3} mt={1}>
                                     <Textarea
                                         value={editingContent}
@@ -283,13 +301,13 @@ export default function PublicationComments({ publication, showInput, setShowInp
                                         <Button size="sm" bg="transparent" color="gray.400" _hover={{ color: "white" }} onClick={() => setEditingCommentId(null)} disabled={isEditingComment}>
                                             Cancelar
                                         </Button>
-                                        <Button size="sm" bg="white" color="black" _hover={{ opacity: 0.8 }} onClick={() => submitEditComment(c.id_comentario)} disabled={isEditingComment}>
+                                        <Button size="sm" bg="white" color="black" _hover={{ opacity: 0.8 }} onClick={() => submitEditComment(c.id)} disabled={isEditingComment}>
                                             {isEditingComment ? <Spinner size="xs" color="black" /> : "Guardar"}
                                         </Button>
                                     </Flex>
                                 </Box>
                             ) : (
-                                <Text mb={3} whiteSpace="pre-wrap">{c.contenido}</Text>
+                                <Text mb={3} whiteSpace="pre-wrap">{c.content}</Text>
                             )}
                         </Box>
                     </Flex>
@@ -297,10 +315,25 @@ export default function PublicationComments({ publication, showInput, setShowInp
                 </Box>
             ))
             }
+
+            {hasMore && (
+                <Flex justify="center" my={4}>
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        color="white"
+                        onClick={() => fetchComments(nextToken)}
+                        loading={isLoadingComments}
+                        _hover={{ bg: "whiteAlpha.200" }}
+                    >
+                        Cargar más comentarios
+                    </Button>
+                </Flex>
+            )}
             <ConfirmModal
                 isOpen={commentToDeleteId !== null}
                 title={
-                    commentToDeleteId && comments.find((c: any) => c.id_comentario === commentToDeleteId)?.Usuario?.Correo_electronico === globalEmail
+                    commentToDeleteId && comments.find((c: any) => c.id === commentToDeleteId)?.user?.email === globalEmail
                         ? "¿Estás seguro de que deseas eliminar tu comentario?"
                         : "¿Estás seguro de que deseas eliminar el comentario de este usuario?"
                 }

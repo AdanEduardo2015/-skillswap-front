@@ -2,8 +2,7 @@ import { useState } from "react";
 import { signUp } from "aws-amplify/auth";
 import { useUserData } from "../utils/UserStore";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { apiRoutes } from "../utils/GlobalVariables";
+import { api } from "../services/api";
 import { Box, Flex, Heading, Text, Input, Button, Spinner, Checkbox, Image } from "@chakra-ui/react";
 
 function SignUp() {
@@ -89,13 +88,10 @@ function SignUp() {
             setGlobalEmail(email);
             setGlobalName(username);
 
-            await axios.post(
-                apiRoutes.create_user_url,
-                {
-                    Correo_electronico: email,
-                    Nombre_usuario: username
-                }
-            );
+            await api.users.create({
+                email: email,
+                username: username
+            });
 
             setIsSendingForm(false);
             setIsValidName(null);
@@ -111,7 +107,7 @@ function SignUp() {
             setPassword("");
 
             navigate("/confirm-signup", {
-                state: { Correo_electronico: email }
+                state: { email: email }
             });
         } catch (error: any) {
             setIsSendingForm(false);

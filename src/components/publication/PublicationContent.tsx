@@ -10,21 +10,21 @@ interface PublicationContentProps {
 export default function PublicationContent({ post, onImageClick }: PublicationContentProps) {
     return (
         <>
-            <Text mb={3}>{post.Contenido}</Text>
+            <Text mb={3}>{post.content}</Text>
 
-            {post.Lat && post.Long && (
+            {post.lat && post.long && (
                 <Box mb={3} w={["100%", "75%"]} mx="auto" onClick={e => e.stopPropagation()}>
                     <LocationPicker
-                        latitude={Number(post.Lat)}
-                        longitude={Number(post.Long)}
+                        latitude={Number(post.lat)}
+                        longitude={Number(post.long)}
                         readOnly={true}
                     />
                 </Box>
             )}
 
-            {post.Url_imagen && (
+            {post.imageUrl && (
                 <Image
-                    src={post.Url_imagen}
+                    src={post.imageUrl}
                     borderRadius="md"
                     mb={3}
                     w={["100%", "50%"]}
@@ -32,13 +32,13 @@ export default function PublicationContent({ post, onImageClick }: PublicationCo
                     fetchPriority="high"
                     mx="auto"
                     cursor="pointer"
-                    onClick={e => { e.stopPropagation(); onImageClick(post.Url_imagen!); }}
+                    onClick={e => { e.stopPropagation(); onImageClick(post.imageUrl!); }}
                 />
             )}
 
-            {post.Url_video && (
+            {post.videoUrl && (
                 <chakra.video
-                    src={post.Url_video}
+                    src={post.videoUrl}
                     borderRadius="md"
                     mb={3}
                     w={["100%", "75%"]}

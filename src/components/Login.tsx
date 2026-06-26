@@ -84,10 +84,11 @@ function Login() {
             }
 
             const claims = idToken.payload;
+            const groups = claims["cognito:groups"] as string[] | undefined;
 
             setGlobalEmail(claims.email as string);
             setGlobalName((claims.name as string) ?? "");
-            setGlobalRole((claims["cognito:groups"] as string[])[0] ?? "");
+            setGlobalRole(groups && groups.length > 0 ? groups[0] : "user");
 
             setProfilePictureUrl(null);
 

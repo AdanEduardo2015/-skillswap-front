@@ -2,7 +2,7 @@ import { useLocation, useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
 import { fetchAuthSession } from "aws-amplify/auth";
 
-const base_url = 'https://nkuohbe6xa.execute-api.us-east-1.amazonaws.com';
+const base_url = 'https://zb9wlsnes1.execute-api.us-east-1.amazonaws.com';
 export const apiRoutes = {
   create_user_url: `${base_url}/user/create`,
   delete_account_url: `${base_url}/user/delete`,
@@ -19,6 +19,7 @@ export const apiRoutes = {
 
   messages_account_url: `${base_url}/account/messages`,
 
+  list_comments_url: `${base_url}/comment/list`,
   comment_publication_url: `${base_url}/comment/create`,
   delete_comment_url: `${base_url}/comment/delete`,
   edit_comment_url: `${base_url}/comment/edit`,

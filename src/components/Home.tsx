@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Box, Flex, Heading, Text } from "@chakra-ui/react";
-import { listPublications } from "../services/api";
+import { api } from "../services/api";
 import type { Publication } from "../types";
 import PublicationCard from "./PublicationCard";
 import ImageModal from "./modals/ImageModal";
@@ -12,14 +12,15 @@ function Home() {
     const [isLoadingPublications, setIsLoadingPublications] = useState(true);
     const [imagenSeleccionada, setImagenSeleccionada] = useState<string | null>(null);
 
-    const [page, setPage] = useState(1);
+    const [nextToken, setNextToken] = useState<string | null>(null);
     const [hasMore, setHasMore] = useState(true);
 
-    const loadPublications = async (pageNumber: number) => {
+    const loadPublications = async (limit: number, token?: string | null) => {
         try {
-            const { publications, hasMore: more } = await listPublications(pageNumber, 10);
-            setPublicaciones(prev => pageNumber === 1 ? publications : [...prev, ...publications]);
+            const { items, hasMore: more, nextToken: newNextToken } = await api.publications.list(limit, token);
+            setPublicaciones(prev => !token ? items : [...prev, ...items]);
             setHasMore(more);
+            setNextToken(newNextToken ?? null);
         } catch {
             setHasMore(false);
         } finally {
@@ -29,13 +30,11 @@ function Home() {
 
     useEffect(() => {
         setIsLoadingPublications(true);
-        loadPublications(1);
+        loadPublications(10);
     }, []);
 
     const fetchMoreData = () => {
-        const nextPage = page + 1;
-        setPage(nextPage);
-        loadPublications(nextPage);
+        loadPublications(10, nextToken);
     };
 
     if (isLoadingPublications) return (
@@ -65,7 +64,7 @@ function Home() {
                 >
                     {publicaciones.map(post => (
                         <PublicationCard
-                            key={post.Id_publicacion}
+                            key={post.id}
                             post={post}
                             onImageClick={setImagenSeleccionada}
                         />

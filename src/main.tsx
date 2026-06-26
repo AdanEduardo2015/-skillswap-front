@@ -7,13 +7,13 @@ import { BrowserRouter as Router, useLocation, useNavigate } from "react-router-
 import { PathsInitializer, paths } from "./utils/GlobalVariables.tsx";
 import { useMediaQuery } from "./components/hooks/UseMediaQuery.ts";
 
-import DesktopLayout from './components/layouts/DesktopLayout.tsx';
-import MobileLayout from './components/layouts/MobileLayout.tsx';
+import RootLayout from './components/layouts/RootLayout.tsx';
 import AppLinkPrompt from './components/AppLinkPrompt.tsx';
 import NetworkLoader from './components/NetworkLoader.tsx';
 import { useNotificationPolling } from './components/hooks/useNotificationPolling.ts';
 import { usePushNotifications } from './components/hooks/usePushNotifications.ts';
-import { StrictMode } from 'react';
+
+import { App as CapacitorApp } from '@capacitor/app';
 
 const system = createSystem(defaultConfig, {
     theme: {
@@ -28,13 +28,11 @@ const system = createSystem(defaultConfig, {
     },
     globalCss: {
         body: {
-            bg: '#000000',
-            color: 'white',
+            bg: 'var(--bg-color)',
+            color: 'var(--text-color)',
         },
     },
 });
-
-import { App as CapacitorApp } from '@capacitor/app';
 
 function NavigatorAndPaths({ setPathsState }: { setPathsState: any }) {
     const location = useLocation();
@@ -86,19 +84,13 @@ function App() {
             <AppLinkPrompt />
             <NetworkLoader />
 
-            {isDesktop ? (
-                <DesktopLayout pathsState={pathsState} />
-            ) : (
-                <MobileLayout pathsState={pathsState} />
-            )}
+            <RootLayout isDesktop={isDesktop} pathsState={pathsState} />
         </Router>
     );
 }
 
 createRoot(document.getElementById("root")!).render(
-    <StrictMode>
         <ChakraProvider value={system}>
             <App />
         </ChakraProvider>
-    </StrictMode>
 );

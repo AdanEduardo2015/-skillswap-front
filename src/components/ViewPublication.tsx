@@ -1,19 +1,17 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import { api } from "../services/api";
 import {
-    apiRoutes,
     useSearchParamsGlobal,
-    getToken,
-    isUserAuthenticated
 } from "../utils/GlobalVariables";
 import PublicationCard from "./PublicationCard";
 import ImageModal from "./modals/ImageModal";
 import PublicationComments from "./PublicationComments";
 import { Flex, Box, Heading } from "@chakra-ui/react";
 import { SkeletonPublicationCard } from "./Skeletons";
+import type { Publication } from "../types";
 
 function ViewPublication() {
-    const [publication, setPublication] = useState<any>(null);
+    const [publication, setPublication] = useState<Publication | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [imagenSeleccionada, setImagenSeleccionada] = useState<string | null>(null);
@@ -32,22 +30,8 @@ function ViewPublication() {
 
         const loadPublication = async () => {
             try {
-                const isAuth = await isUserAuthenticated();
-                const token = isAuth ? await getToken() : null;
-                const res = await axios.post(
-                    (isAuth ? apiRoutes.list_publication_user_auth_url : apiRoutes.list_publication_url),
-                    { Id_publicacion: publicationId },
-                    {
-                        withCredentials: true,
-                        ...(isAuth && {
-                            headers: {
-                                Authorization: `Bearer ${token}`,
-                            },
-                        }),
-                    }
-                );
-
-                setPublication(res.data);
+                const data = await api.publications.get(publicationId);
+                setPublication(data);
             } catch {
                 setError("Error al obtener la publicación");
             } finally {
@@ -61,10 +45,10 @@ function ViewPublication() {
     const handleCommentAdded = () => {
         setPublication((prev: any) => {
             if (!prev) return prev;
-            const prevComentarios = prev.comentarios ?? { total: 0, lista: [] };
+            const prevComentarios = prev.comments ?? { total: 0, list: [] };
             return {
                 ...prev,
-                comentarios: {
+                comments: {
                     ...prevComentarios,
                     total: prevComentarios.total + 1
                 }
@@ -75,10 +59,10 @@ function ViewPublication() {
     const handleCommentDeleted = () => {
         setPublication((prev: any) => {
             if (!prev) return prev;
-            const prevComentarios = prev.comentarios ?? { total: 0, lista: [] };
+            const prevComentarios = prev.comments ?? { total: 0, list: [] };
             return {
                 ...prev,
-                comentarios: {
+                comments: {
                     ...prevComentarios,
                     total: Math.max(0, prevComentarios.total - 1)
                 }
