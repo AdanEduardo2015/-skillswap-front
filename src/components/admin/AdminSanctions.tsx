@@ -238,12 +238,18 @@ export default function AdminSanctions() {
           )}
 
           {formValues.type === "content_restriction" && (
-            <TextField
-              label="ID de la publicación / video"
-              value={formValues.publicationId}
-              placeholder="Ej: d83a8b27-463d..."
-              onChange={(event) => updateForm("publicationId", event.target.value)}
-            />
+            <Box mb={4}>
+              <TextField
+                label="ID de la publicación / video"
+                value={formValues.publicationId}
+                placeholder="Ej: d83a8b27-463d..."
+                onChange={(event) => updateForm("publicationId", event.target.value)}
+                containerProps={{ mb: 0 }}
+              />
+              {formValues.publicationId.trim() && (
+                <SanctionVideoPreview publicationId={formValues.publicationId.trim()} />
+              )}
+            </Box>
           )}
 
           <AppButton type="button" w="100%" onClick={() => void createSanction()} disabled={isSaving}>
@@ -383,9 +389,16 @@ function SanctionRow({
           </Text>
 
           {sanction.publicationId && (
-            <Text color="var(--text-muted)" fontSize="sm" mb={2}>
-              Publicación / Video ID: {sanction.publicationId}
-            </Text>
+            <Box mb={2}>
+              <Flex align="center" gap={2} wrap="wrap">
+                <Text color="var(--text-muted)" fontSize="sm">
+                  Publicación / Video ID: {sanction.publicationId}
+                </Text>
+                {sanction.type === "content_restriction" && (
+                  <SanctionVideoPreview publicationId={sanction.publicationId} inline />
+                )}
+              </Flex>
+            </Box>
           )}
 
           {sanction.description && <Text whiteSpace="pre-wrap">{sanction.description}</Text>}
@@ -409,6 +422,63 @@ function SanctionRow({
         )}
       </Flex>
       <Separator borderColor="var(--card-border)" mt={5} />
+    </Box>
+  );
+}
+
+function SanctionVideoPreview({ publicationId, inline = false }: { publicationId: string, inline?: boolean }) {
+  const [showVideo, setShowVideo] = useState(false);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const loadVideo = async () => {
+    if (showVideo) {
+       setShowVideo(false);
+       return;
+    }
+    setIsLoading(true);
+    setError("");
+    try {
+      const pub = await api.publications.get(publicationId);
+      if (pub.videoUrl) {
+         setVideoUrl(pub.videoUrl);
+         setShowVideo(true);
+      } else {
+         setError("Esta publicación no tiene video.");
+      }
+    } catch(err) {
+      setError("Publicación no encontrada.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Box mt={inline ? 0 : 2} mb={inline ? 0 : 4} w="100%">
+       <Flex align="center" gap={2}>
+         <chakra.button
+           type="button"
+           onClick={() => void loadVideo()}
+           disabled={isLoading}
+           color="blue.400"
+           textDecoration="underline"
+           fontSize="sm"
+           cursor="pointer"
+           _hover={{ color: "blue.300" }}
+           bg="transparent"
+           border="none"
+         >
+           {showVideo ? "Ocultar video" : "Ver video"}
+         </chakra.button>
+         {isLoading && <Spinner size="xs" />}
+       </Flex>
+       {error && <Text color="red.400" fontSize="sm" mt={1}>{error}</Text>}
+       {showVideo && videoUrl && (
+         <Box mt={2} maxW="320px" borderRadius="md" overflow="hidden" bg="black">
+           <video src={videoUrl} controls style={{ width: '100%', display: 'block' }} />
+         </Box>
+       )}
     </Box>
   );
 }
