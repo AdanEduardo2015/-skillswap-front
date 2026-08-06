@@ -127,10 +127,13 @@ export default function PublicationHeader({
                     align="center"
                     px={4}
                     py={2}
-                    cursor="pointer"
-                    _hover={{ bg: "var(--ghost-hover-bg)" }}
+                    cursor={post.approvalStatus === "pending" ? "not-allowed" : "pointer"}
+                    opacity={post.approvalStatus === "pending" ? 0.5 : 1}
+                    _hover={{ bg: post.approvalStatus === "pending" ? undefined : "var(--ghost-hover-bg)" }}
+                    title={post.approvalStatus === "pending" ? "No se puede editar mientras está en revisión" : undefined}
                     onClick={(e) => {
                       e.stopPropagation();
+                      if (post.approvalStatus === "pending") return;
                       setShowOptions(false);
                       onShowEditModal();
                     }}
