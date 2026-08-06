@@ -1,6 +1,6 @@
 import { useLocation } from "react-router-dom";
 import type { IconType } from "react-icons";
-import { FaBalanceScale, FaBell, FaChartLine, FaFlag, FaGavel, FaHome, FaSearch, FaTags, FaUser, FaVideo } from "react-icons/fa";
+import { FaBalanceScale, FaBell, FaChartLine, FaFlag, FaGavel, FaHome, FaSearch, FaTags, FaUser } from "react-icons/fa";
 import { FiPlusSquare, FiSend } from "react-icons/fi";
 import { useAuthSession } from "../../app/auth/AuthSessionContext";
 import { ROUTE_PATHS } from "../../app/router/routeConfig";
@@ -104,13 +104,6 @@ export function useAppNavigation() {
     Icon: FaBalanceScale,
   });
 
-  const adminPublications = withActiveState({
-    id: "admin-publications",
-    label: "Moderación",
-    path: ROUTE_PATHS.adminPublications,
-    Icon: FaVideo,
-  });
-
   const profile = withActiveState({
     id: "profile",
     label: "Perfil",
@@ -123,7 +116,7 @@ export function useAppNavigation() {
     desktopCreateItem: canCreatePublication ? createPublication : null,
     desktopBottomItems: [
       ...(canUseCreatorTools ? [creatorDashboard] : []),
-      ...(isAdmin ? [adminReports, adminSanctions, adminCategories, adminPublications, adminAppeals] : []),
+      ...(isAdmin ? [adminReports, adminSanctions, adminCategories, adminAppeals] : []),
       profile,
     ],
     desktopItems: [
@@ -133,7 +126,7 @@ export function useAppNavigation() {
       notifications,
       ...(canCreatePublication ? [createPublication] : []),
       ...(canUseCreatorTools ? [creatorDashboard] : []),
-      ...(isAdmin ? [adminReports, adminSanctions, adminCategories, adminPublications, adminAppeals] : []),
+      ...(isAdmin ? [adminReports, adminSanctions, adminCategories, adminAppeals] : []),
       profile,
     ],
     mobileHeaderItems: [messages, notifications],

@@ -27,7 +27,6 @@ const AdminCategories = lazy(() => import("../../components/admin/AdminCategorie
 const AdminReports = lazy(() => import("../../components/admin/AdminReports"));
 const AdminSanctions = lazy(() => import("../../components/admin/AdminSanctions"));
 const AdminAppeals = lazy(() => import("../../components/admin/AdminAppeals"));
-const AdminPublications = lazy(() => import("../../components/admin/AdminPublications"));
 const SetupMFA = lazy(() => import("../../components/SetupMFA"));
 const VerifyMFA = lazy(() => import("../../components/VerifyMFA"));
 const OAuthCallback = lazy(() => import("../../components/OAuthCallback"));
@@ -250,14 +249,6 @@ export default function AppRoutes() {
             element={
               <RouteGuard routeDefinition={ROUTE_DEFINITIONS.adminAppeals}>
                 <AdminAppeals />
-              </RouteGuard>
-            }
-          />
-          <Route
-            path={ROUTE_PATHS.adminPublications}
-            element={
-              <RouteGuard routeDefinition={ROUTE_DEFINITIONS.adminPublications}>
-                <AdminPublications />
               </RouteGuard>
             }
           />
