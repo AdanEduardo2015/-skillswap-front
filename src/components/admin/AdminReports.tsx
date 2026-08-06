@@ -11,7 +11,6 @@ const statusOptions: Array<{ value: ReportStatus; label: string; colorPalette: s
   { value: "pending", label: "Pendientes", colorPalette: "yellow" },
   { value: "reviewed", label: "Revisados", colorPalette: "blue" },
   { value: "dismissed", label: "Descartados", colorPalette: "gray" },
-  { value: "actioned", label: "Accionados", colorPalette: "green" },
 ];
 
 const reviewActions: Array<{
@@ -21,7 +20,6 @@ const reviewActions: Array<{
 }> = [
   { status: "reviewed", label: "Marcar revisado", tone: "secondary" },
   { status: "dismissed", label: "Descartar", tone: "ghost" },
-  { status: "actioned", label: "Accion tomada", tone: "primary" },
 ];
 
 const targetTypeLabels: Record<ReportTargetType, string> = {
