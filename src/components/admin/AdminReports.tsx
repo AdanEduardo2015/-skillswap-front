@@ -274,13 +274,12 @@ function ReportRow({
           </Flex>
 
           <Text color="var(--text-muted)" fontSize="sm" mb={3}>
-            {report.reportedUser ? (
+            {report.reportedUser && (
               <>
                 Usuario reportado: {report.reportedUser.name || report.reportedUser.username || "Creador"} ({report.reportedUser.email || "Correo no disponible"}) |{" "}
               </>
-            ) : (
-              <>ID objetivo: {report.targetId} | </>
             )}
+            {report.targetType === "publication" ? "ID Publicación" : "ID objetivo"}: {report.targetId} | {" "}
             Reportado por: {report.reporterEmail || "desconocido"} - {formatDate(report.createdAt)}
           </Text>
 
