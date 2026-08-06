@@ -37,11 +37,11 @@ export function useNotificationPolling() {
           return;
         }
 
-        const res = await api.notifications.list(1);
+        const res = await api.notifications.list(20);
         if (!isActive) return;
 
         const notifications = res.notifications || [];
-        setHasUnreadNotifications(notifications.length > 0);
+        setHasUnreadNotifications(notifications.some((n: any) => !(n.read || n.isRead)));
       } catch (error: unknown) {
         if (isRecoverableAuthError(error)) {
           if (isActive) setHasUnreadNotifications(false);
