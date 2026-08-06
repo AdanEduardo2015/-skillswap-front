@@ -208,7 +208,7 @@ export default function PublicationComments({
               )}
             </Box>
 
-            {c.canDelete && !isBannedUser && (
+            {(c.canDelete || globalRole === "admin") && !isBannedUser && (
               <Box position="relative" ref={showOptionsId === c.id ? optionsRef : null}>
                 <Image
                   src="/Show_Options.svg"
@@ -238,7 +238,7 @@ export default function PublicationComments({
                     py={1}
                     w="120px"
                   >
-                    {c.canUpdate && (
+                    {(c.canUpdate || globalRole === "admin") && (
                       <Flex
                         align="center"
                         px={3}

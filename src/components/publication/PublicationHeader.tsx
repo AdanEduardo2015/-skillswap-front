@@ -90,13 +90,13 @@ export default function PublicationHeader({
       <Flex align="center" position="relative" ref={optionsRef}>
         <Text
           as="span"
-          mr={post.canDelete || post.canUpdate ? 2 : 3}
+          mr={(post.canDelete || globalRole === "admin") || (post.canUpdate || globalRole === "admin") ? 2 : 3}
           fontSize="sm"
           color="var(--text-subtle)"
         >
           {formatFecha(post.createdAt)}
         </Text>
-        {(post.canDelete || post.canUpdate) && !isBannedUser && (
+        {((post.canDelete || globalRole === "admin") || (post.canUpdate || globalRole === "admin")) && !isBannedUser && (
           <>
             <Image
               src="/Show_Options.svg"
@@ -105,10 +105,10 @@ export default function PublicationHeader({
               alt="Opciones"
               onClick={(e) => {
                 e.stopPropagation();
-                if (!isPreview) setShowOptions(!showOptions);
+                if (!isPreview || globalRole === "admin") setShowOptions(!showOptions);
               }}
             />
-            {showOptions && !isPreview && (
+            {showOptions && (!isPreview || globalRole === "admin") && (
               <Flex
                 direction="column"
                 position="absolute"
@@ -122,18 +122,18 @@ export default function PublicationHeader({
                 py={2}
                 w="150px"
               >
-                {post.canUpdate && (
+                {(post.canUpdate || globalRole === "admin") && (
                   <Flex
                     align="center"
                     px={4}
                     py={2}
-                    cursor={post.approvalStatus === "pending" ? "not-allowed" : "pointer"}
-                    opacity={post.approvalStatus === "pending" ? 0.5 : 1}
-                    _hover={{ bg: post.approvalStatus === "pending" ? undefined : "var(--ghost-hover-bg)" }}
-                    title={post.approvalStatus === "pending" ? "No se puede editar mientras está en revisión" : undefined}
+                    cursor={post.approvalStatus === "pending" && globalRole !== "admin" ? "not-allowed" : "pointer"}
+                    opacity={post.approvalStatus === "pending" && globalRole !== "admin" ? 0.5 : 1}
+                    _hover={{ bg: post.approvalStatus === "pending" && globalRole !== "admin" ? undefined : "var(--ghost-hover-bg)" }}
+                    title={post.approvalStatus === "pending" && globalRole !== "admin" ? "No se puede editar mientras está en revisión" : undefined}
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (post.approvalStatus === "pending") return;
+                      if (post.approvalStatus === "pending" && globalRole !== "admin") return;
                       setShowOptions(false);
                       onShowEditModal();
                     }}
@@ -144,7 +144,7 @@ export default function PublicationHeader({
                     </Text>
                   </Flex>
                 )}
-                {post.canDelete && (
+                {(post.canDelete || globalRole === "admin") && (
                   <Flex
                     align="center"
                     px={4}
