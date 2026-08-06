@@ -62,6 +62,29 @@ export default function AdminPublications() {
     setRejectionReason("");
   };
 
+  const [deletePublicationTarget, setDeletePublicationTarget] = useState<Publication | null>(null);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+
+  const handleOpenDelete = (pub: Publication) => {
+    setDeletePublicationTarget(pub);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletePublicationTarget) return;
+    setIsDeleting(true);
+    try {
+      await api.publications.delete(deletePublicationTarget.id);
+      showToast("Publicación eliminada exitosamente.");
+      setDeletePublicationTarget(null);
+      void loadData();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Error al eliminar la publicación.";
+      showToast(message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const handleConfirmReview = async () => {
     if (!actionPublication || !reviewAction) return;
 
@@ -220,6 +243,15 @@ export default function AdminPublications() {
                       >
                         Rechazar ❌
                       </AppButton>
+                      <AppButton
+                        size="sm"
+                        bg="gray.600"
+                        color="white"
+                        _hover={{ bg: "gray.700" }}
+                        onClick={() => handleOpenDelete(pub)}
+                      >
+                        Eliminar 🗑️
+                      </AppButton>
                     </Flex>
                   </Flex>
                 </Box>
@@ -260,6 +292,21 @@ export default function AdminPublications() {
             />
           </Box>
         )}
+      </ConfirmModal>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={deletePublicationTarget !== null}
+        title="¿Deseas eliminar definitivamente esta publicación/video?"
+        isLoading={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeletePublicationTarget(null)}
+      >
+        <Box mt={3} w="100%">
+          <Text fontSize="sm" color="red.300">
+            Esta acción eliminará la publicación del sistema y no se puede deshacer.
+          </Text>
+        </Box>
       </ConfirmModal>
 
       <ImageModal image={selectedImage} onClose={() => setSelectedImage(null)} />

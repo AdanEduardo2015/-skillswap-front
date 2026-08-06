@@ -4,6 +4,7 @@ import { FaBan, FaCheck, FaComment, FaFileAlt, FaSync, FaUser } from "react-icon
 import { api } from "../../services/api";
 import type { Report, ReportStatus, ReportTargetType } from "../../types";
 import { AppButton, EmptyState } from "../../shared/ui";
+import ConfirmModal from "../modals/ConfirmModal";
 
 type ReviewStatus = Exclude<ReportStatus, "pending">;
 
@@ -131,6 +132,35 @@ export default function AdminReports() {
     } finally {
       setProcessingReportId(null);
     }
+  const [targetToDelete, setTargetToDelete] = useState<Report | null>(null);
+  const [isDeletingTarget, setIsDeletingTarget] = useState(false);
+
+  const handleDeleteTarget = async () => {
+    if (!targetToDelete) return;
+    setIsDeletingTarget(true);
+    setFeedbackMessage("");
+    setIsFeedbackError(false);
+
+    try {
+      if (targetToDelete.targetType === "publication") {
+        await api.publications.delete(targetToDelete.targetId);
+      } else if (targetToDelete.targetType === "comment") {
+        await api.comments.delete(targetToDelete.targetId);
+      }
+      
+      // Marcar el reporte como descartado o revisado automáticamente (opcional)
+      const updatedReport = await api.admin.reviewReport(targetToDelete.id, "reviewed", "Contenido eliminado por administrador");
+      applyReviewedReport(updatedReport);
+      
+      setIsFeedbackError(false);
+      setFeedbackMessage("Contenido eliminado exitosamente.");
+    } catch (error: unknown) {
+      setIsFeedbackError(true);
+      setFeedbackMessage(error instanceof Error ? error.message : "No se pudo eliminar el contenido.");
+    } finally {
+      setIsDeletingTarget(false);
+      setTargetToDelete(null);
+    }
   };
 
   return (
@@ -215,6 +245,7 @@ export default function AdminReports() {
               report={report}
               isProcessing={processingReportId === report.id}
               onReview={(nextStatus) => void reviewReport(report, nextStatus)}
+              onDeleteTarget={setTargetToDelete}
             />
           ))}
         </VStack>
@@ -234,6 +265,23 @@ export default function AdminReports() {
           </AppButton>
         </Flex>
       )}
+
+      {/* Delete Target Confirmation Modal */}
+      {targetToDelete && (
+        <ConfirmModal
+          isOpen={true}
+          title={`¿Eliminar definitivamente este ${targetTypeLabels[targetToDelete.targetType].toLowerCase()}?`}
+          isLoading={isDeletingTarget}
+          onConfirm={handleDeleteTarget}
+          onCancel={() => setTargetToDelete(null)}
+        >
+          <Box mt={3} w="100%">
+            <Text fontSize="sm" color="red.300">
+              Esta acción eliminará el contenido del sistema y no se puede deshacer.
+            </Text>
+          </Box>
+        </ConfirmModal>
+      )}
     </Box>
   );
 }
@@ -242,10 +290,12 @@ function ReportRow({
   report,
   isProcessing,
   onReview,
+  onDeleteTarget,
 }: {
   report: Report;
   isProcessing: boolean;
   onReview: (status: ReviewStatus) => void;
+  onDeleteTarget: (report: Report) => void;
 }) {
   const statusOption = getStatusOption(report.status);
   const isPending = report.status === "pending";
@@ -299,27 +349,32 @@ function ReportRow({
         </Box>
 
         {isPending && (
-          <Flex
-            gap={2}
-            justify={{ base: "flex-start", lg: "flex-end" }}
-            align="center"
-            wrap="wrap"
-            shrink={0}
-          >
-            {reviewActions.map((action) => (
+          <Flex gap={2} direction="column">
+            <AppButton
+              size="sm"
+              disabled={isProcessing}
+              onClick={() => onReview("reviewed")}
+            >
+              Marcar como revisado
+            </AppButton>
+            <AppButton
+              size="sm"
+              tone="ghost"
+              disabled={isProcessing}
+              onClick={() => onReview("dismissed")}
+            >
+              Descartar
+            </AppButton>
+            {(report.targetType === "publication" || report.targetType === "comment") && (
               <AppButton
-                key={action.status}
-                type="button"
-                tone={action.tone}
-                onClick={() => onReview(action.status)}
+                size="sm"
+                tone="danger"
                 disabled={isProcessing}
+                onClick={() => onDeleteTarget(report)}
               >
-                <Flex align="center" gap={2}>
-                  {action.status === "dismissed" ? <FaBan /> : <FaCheck />}
-                  <Text>{action.label}</Text>
-                </Flex>
+                Eliminar Contenido 🗑️
               </AppButton>
-            ))}
+            )}
           </Flex>
         )}
       </Flex>
