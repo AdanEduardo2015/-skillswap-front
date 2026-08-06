@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Box, Flex, Heading, Separator, Spinner, Text, VStack, chakra } from "@chakra-ui/react";
-import { FaBan, FaCheck, FaComment, FaFileAlt, FaSync, FaUser } from "react-icons/fa";
+import { FaComment, FaFileAlt, FaSync, FaUser } from "react-icons/fa";
 import { api } from "../../services/api";
 import type { Report, ReportStatus, ReportTargetType } from "../../types";
 import { AppButton, EmptyState } from "../../shared/ui";
@@ -12,15 +12,6 @@ const statusOptions: Array<{ value: ReportStatus; label: string; colorPalette: s
   { value: "pending", label: "Pendientes", colorPalette: "yellow" },
   { value: "reviewed", label: "Revisados", colorPalette: "blue" },
   { value: "dismissed", label: "Descartados", colorPalette: "gray" },
-];
-
-const reviewActions: Array<{
-  status: ReviewStatus;
-  label: string;
-  tone: "primary" | "secondary" | "ghost" | "danger";
-}> = [
-  { status: "reviewed", label: "Marcar revisado", tone: "secondary" },
-  { status: "dismissed", label: "Descartar", tone: "ghost" },
 ];
 
 const targetTypeLabels: Record<ReportTargetType, string> = {
