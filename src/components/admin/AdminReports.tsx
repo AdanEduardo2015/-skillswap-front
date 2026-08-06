@@ -132,6 +132,7 @@ export default function AdminReports() {
     } finally {
       setProcessingReportId(null);
     }
+  };
   const [targetToDelete, setTargetToDelete] = useState<Report | null>(null);
   const [isDeletingTarget, setIsDeletingTarget] = useState(false);
 
