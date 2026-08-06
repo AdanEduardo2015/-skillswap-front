@@ -25,7 +25,9 @@ export default function ImageModal({ image, onClose }: Props) {
               bg="gray.100"
               _hover={{ bg: "gray.200" }}
               color="black"
-            >X</Button>
+            >
+              X
+            </Button>
           </Dialog.Body>
         </Dialog.Content>
       </Dialog.Positioner>

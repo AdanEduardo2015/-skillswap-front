@@ -1,307 +1,456 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { signUp } from "aws-amplify/auth";
-import { useUserData } from "../utils/UserStore";
 import { useNavigate } from "react-router-dom";
+import { Box, Flex, Heading, Image, Spinner, Text, Checkbox } from "@chakra-ui/react";
 import { api } from "../services/api";
-import { Box, Flex, Heading, Text, Input, Button, Spinner, Checkbox, Image } from "@chakra-ui/react";
+import { useUserData } from "../utils/UserStore";
+import { AppButton, TextareaField, TextField } from "../shared/ui";
+import { useSpecialties } from "../hooks/useSpecialties";
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const getErrorName = (error: unknown) => {
+  if (error && typeof error === "object" && "name" in error) {
+    return String((error as { name?: unknown }).name);
+  }
+
+  return "";
+};
+
+type SignUpProfileField = "username" | "bio" | "specialty";
+
+type SignUpProfileValues = {
+  username: string;
+  bio: string;
+  specialty: string;
+};
+
+const emptyProfileValues: SignUpProfileValues = {
+  username: "",
+  bio: "",
+  specialty: "",
+};
 
 function SignUp() {
-    const [email, setEmail] = useState("");
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [profileValues, setProfileValues] = useState<SignUpProfileValues>(emptyProfileValues);
+  const { specialties } = useSpecialties();
+  const [showSpecialties, setShowSpecialties] = useState(false);
 
-    const setGlobalEmail = useUserData((state) => state.setEmail);
-    const setGlobalName = useUserData((state) => state.setName);
+  const {
+    setEmail: setGlobalEmail,
+    setName: setGlobalName,
+    setRole: setGlobalRole,
+    setProfileData,
+  } = useUserData();
 
-    const [isValidName, setIsValidName] = useState<boolean | null>(null);
-    const [isValidEmail, setIsValidEmail] = useState<boolean | null>(null);
-    const [showPassword, setShowPassword] = useState<boolean | null>(null);
-    const [isSendingForm, setIsSendingForm] = useState<boolean | null>(null);
-    const [isValidPassword, setIsValidPassword] = useState<boolean | null>(null);
+  const [isValidName, setIsValidName] = useState<boolean | null>(null);
+  const [isValidEmail, setIsValidEmail] = useState<boolean | null>(null);
+  const [showPassword, setShowPassword] = useState<boolean | null>(null);
+  const [isSendingForm, setIsSendingForm] = useState<boolean | null>(null);
+  const [isValidPassword, setIsValidPassword] = useState<boolean | null>(null);
+  const [isPasswordsMatch, setIsPasswordsMatch] = useState<boolean | null>(null);
+  const [profileMessage, setProfileMessage] = useState("");
 
-    const [nameMessage, setNameMessage] = useState("Ingrese un nombre de usuario");
-    const [passwordMessage, setPasswordMessage] = useState("Ingrese una contraseña");
-    const [emailMessage, setEmailMessage] = useState("Ingrese su correo electrónico");
+  const [nameMessage, setNameMessage] = useState("Ingrese un nombre de usuario");
+  const [passwordMessage, setPasswordMessage] = useState("Ingrese una contraseña");
+  const [confirmPasswordMessage, setConfirmPasswordMessage] = useState("Repita la contraseña");
+  const [emailMessage, setEmailMessage] = useState("Ingrese su correo electronico");
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const passwordRequirements = {
+    length: password.length >= 8,
+    uppercase: /[A-Z]/.test(password),
+    lowercase: /[a-z]/.test(password),
+    number: /\d/.test(password),
+    special: /[@$!%*?&._-]/.test(password),
+  };
 
-    const require = {
-        length: password.length >= 8,
-        mayuscula: /[A-Z]/.test(password),
-        minuscula: /[a-z]/.test(password),
-        numero: /\d/.test(password),
-        especial: /[@$!%*?&._-]/.test(password),
-    };
+  const updateProfileField = (field: SignUpProfileField, value: string) => {
+    setProfileValues((current) => ({ ...current, [field]: value }));
+    if (profileMessage) setProfileMessage("");
+  };
 
-    const navigate = useNavigate();
+  const validateEmail = (): boolean => {
+    if (!emailRegex.test(email)) {
+      setEmailMessage("El correo no es valido");
+      setIsValidEmail(false);
+      return false;
+    }
+    setEmailMessage("Correo valido");
+    setIsValidEmail(true);
+    return true;
+  };
 
-    const handleTogglePassword = () => setShowPassword(prev => !prev);
+  const validateName = (): boolean => {
+    if (!profileValues.username.trim()) {
+      setNameMessage("No ha colocado un nombre de usuario");
+      setIsValidName(false);
+      return false;
+    }
+    setNameMessage("Nombre de usuario valido");
+    setIsValidName(true);
+    return true;
+  };
 
-    const validateEmail = (): boolean => {
-        if (!emailRegex.test(email)) {
-            setEmailMessage("El correo no es válido");
-            setIsValidEmail(false);
-            return false;
-        }
-        setEmailMessage("Correo válido");
-        setIsValidEmail(true);
-        return true;
-    };
+  const validatePassword = (): boolean => {
+    if (!Object.values(passwordRequirements).every(Boolean)) {
+      setPasswordMessage("La contraseña no cumple los requisitos");
+      setIsValidPassword(false);
+      return false;
+    }
+    setPasswordMessage("Contraseña valida");
+    setIsValidPassword(true);
+    return true;
+  };
 
-    const validateName = (): boolean => {
-        if (!username.trim()) {
-            setNameMessage("No ha colocado un nombre de usuario");
-            setIsValidName(false);
-            return false;
-        }
-        setNameMessage("Nombre de usuario válido");
-        setIsValidName(true);
-        return true;
-    };
+  const validatePasswordConfirmation = (): boolean => {
+    if (password !== confirmPassword) {
+      setConfirmPasswordMessage("Las contraseñas no coinciden");
+      setIsPasswordsMatch(false);
+      return false;
+    }
+    setConfirmPasswordMessage("Contraseñas coinciden");
+    setIsPasswordsMatch(true);
+    return true;
+  };
 
-    const validatePassword = (): boolean => {
-        if (!Object.values(require).every(Boolean)) {
-            setPasswordMessage("La contraseña no cumple los requisitos");
-            setIsValidPassword(false);
-            return false;
-        }
-        setPasswordMessage("Contraseña válida");
-        setIsValidPassword(true);
-        return true;
-    };
+  const validateProfile = (): boolean => {
+    setProfileMessage("");
+    return true;
+  };
 
-    const signUpUser = async () => {
-        setIsSendingForm(true);
+  const signUpUser = async () => {
+    setIsSendingForm(true);
 
-        try {
-            await signUp({
-                username: email,
-                password,
-                options: {
-                    userAttributes: {
-                        email,
-                        name: username,
-                    },
-                },
-            });
+    try {
+      const username = profileValues.username.trim();
 
-            setGlobalEmail(email);
-            setGlobalName(username);
+      await signUp({
+        username: email,
+        password,
+        options: {
+          userAttributes: {
+            email,
+            name: username,
+          },
+        },
+      });
 
-            await api.users.create({
-                email: email,
-                username: username
-            });
+      const payload = {
+        email,
+        username,
+        role: "consumer" as const,
+        bio: profileValues.bio.trim(),
+        specialty: profileValues.specialty.trim() || null,
+      };
+      await api.users.create(payload);
 
-            setIsSendingForm(false);
-            setIsValidName(null);
-            setIsValidEmail(null);
-            setIsValidPassword(null);
+      setGlobalEmail(email);
+      setGlobalName(username);
+      setGlobalRole("consumer");
+      setProfileData({
+        email,
+        name: username,
+        role: "consumer",
+        bio: payload.bio ?? null,
+        location: null,
+        interests: [],
+        specialty: payload.specialty ?? null,
+        isBanned: false,
+        isVerified: false,
+      });
 
-            setPasswordMessage("Ingrese una contraseña");
-            setNameMessage("Ingrese un nombre de usuario");
-            setEmailMessage("Ingrese su correo electrónico");
+      setIsSendingForm(false);
+      setIsValidName(null);
+      setIsValidEmail(null);
+      setIsValidPassword(null);
+      setIsPasswordsMatch(null);
+      setPasswordMessage("Ingrese una contraseña");
+      setConfirmPasswordMessage("Repita la contraseña");
+      setNameMessage("Ingrese un nombre de usuario");
+      setEmailMessage("Ingrese su correo electronico");
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+      setProfileValues(emptyProfileValues);
 
-            setEmail("");
-            setUsername("");
-            setPassword("");
+      localStorage.setItem("pending_verification_email", email);
 
-            navigate("/confirm-signup", {
-                state: { email: email }
-            });
-        } catch (error: any) {
-            setIsSendingForm(false);
+      navigate("/confirm-signup", {
+        state: { email },
+      });
+    } catch (error: unknown) {
+      setIsSendingForm(false);
+      console.error("SignUp error detailed:", error);
 
-            switch (error.name) {
-                case "UsernameExistsException":
-                    setEmailMessage("Este usuario ya existe, prueba iniciar sesión");
-                    setIsValidEmail(false);
-                    break;
-                case "InvalidPasswordException":
-                    setPasswordMessage("La contraseña no cumple la política de seguridad");
-                    setIsValidPassword(false);
-                    break;
-                default:
-                    setEmailMessage("Error al registrar el usuario");
+      const status =
+        error && typeof error === "object" && "response" in error
+          ? (error as { response?: { status?: number } }).response?.status
+          : null;
+      const responseData =
+        error && typeof error === "object" && "response" in error
+          ? (error as { response?: { data?: Record<string, unknown> } }).response?.data
+          : null;
+      const responseMessage =
+        responseData && typeof responseData === "object" && "message" in responseData
+          ? String((responseData as Record<string, unknown>).message)
+          : "";
+
+      const errorName = getErrorName(error);
+      if (
+        errorName === "UsernameExistsException" ||
+        status === 409 ||
+        responseMessage.includes("ya existe")
+      ) {
+        setEmailMessage("Este usuario ya existe, prueba iniciar sesión o recuperar contraseña");
+        setIsValidEmail(false);
+      } else if (errorName === "InvalidPasswordException") {
+        setPasswordMessage("La contraseña no cumple la política de seguridad");
+        setIsValidPassword(false);
+      } else {
+        setEmailMessage("Error al registrar el usuario");
+        setIsValidEmail(false);
+      }
+    }
+  };
+
+  const handleValidateForm = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const emailIsValid = validateEmail();
+    const nameIsValid = validateName();
+    const passwordIsValid = validatePassword();
+    const passwordsMatch = validatePasswordConfirmation();
+    const profileIsValid = validateProfile();
+
+    if (emailIsValid && nameIsValid && passwordIsValid && passwordsMatch && profileIsValid) {
+      void signUpUser();
+    }
+  };
+
+  return (
+    <form onSubmit={handleValidateForm}>
+      <Box
+        className={isSendingForm ? "disabled-form" : ""}
+        userSelect="none"
+        display="flex"
+        flexDirection="column"
+        justifyContent="center"
+        alignItems="center"
+        color="white"
+        mt={10}
+      >
+        <Flex w={{ base: "90%", md: "50%" }} mb={2}>
+          <Text
+            color="var(--text-muted)"
+            cursor="pointer"
+            fontWeight="600"
+            onClick={() => navigate("/login")}
+            _hover={{ color: "white" }}
+            transition="color 0.2s"
+          >
+            Volver al inicio de sesion
+          </Text>
+        </Flex>
+
+        <Heading as="h1" size="4xl" color="white" mb={4}>
+          Registrarse
+        </Heading>
+
+        <Box w={{ base: "90%", md: "50%" }} mx="auto" px={4}>
+          <TextField
+            label={nameMessage}
+            isInvalid={isValidName === false}
+            type="text"
+            value={profileValues.username}
+            onChange={(event) => {
+              updateProfileField("username", event.target.value);
+              if (isValidName === false) {
+                setIsValidName(null);
+                setNameMessage("Ingrese un nombre de usuario");
+              }
+            }}
+          />
+
+          <TextField
+            label={emailMessage}
+            isInvalid={isValidEmail === false}
+            type="email"
+            value={email}
+            onChange={(event) => {
+              setEmail(event.target.value);
+              if (isValidEmail === false) {
+                setIsValidEmail(null);
+                setEmailMessage("Ingrese su correo electronico");
+              }
+            }}
+          />
+
+          <TextField
+            label={passwordMessage}
+            isInvalid={isValidPassword === false}
+            type={showPassword ? "text" : "password"}
+            value={password}
+            onChange={(event) => {
+              setPassword(event.target.value);
+              if (isValidPassword === false) {
+                setIsValidPassword(null);
+                setPasswordMessage("Ingrese una contraseña");
+              }
+              if (isPasswordsMatch !== null) {
+                setIsPasswordsMatch(null);
+                setConfirmPasswordMessage("Repita la contraseña");
+              }
+            }}
+            rightElement={
+              <Image
+                width="1.5rem"
+                cursor="pointer"
+                src={!showPassword ? "Text.svg" : "Password.svg"}
+                alt="Mostrar u ocultar contraseña"
+                onClick={() => setShowPassword((current) => !current)}
+              />
             }
-        }
-    };
+          />
 
-    const handleValidateForm = () => {
-        const emailIsValid = validateEmail();
-        const nameIsValid = validateName();
-        const passwordIsValid = validatePassword();
+          <TextField
+            label={confirmPasswordMessage}
+            errorText={
+              confirmPassword.length > 0 && password !== confirmPassword
+                ? "Las contraseñas no coinciden"
+                : undefined
+            }
+            type={showPassword ? "text" : "password"}
+            value={confirmPassword}
+            onChange={(event) => {
+              setConfirmPassword(event.target.value);
+            }}
+          />
 
-        if (emailIsValid && nameIsValid && passwordIsValid) {
-            signUpUser();
-        }
-    };
-
-    return (
-        <Box
-            className={isSendingForm ? "disabled-form" : ""}
-            userSelect="none"
-            display="flex"
-            flexDirection="column"
-            justifyContent="center"
-            alignItems="center"
+          <Box
+            p={3}
+            mb={4}
+            borderRadius="panel"
+            className="no-select-no-click"
+            bg="var(--surface-muted)"
             color="white"
-            mt={10}
-        >
-            <Flex w={{ base: "90%", md: "50%" }} mb={2}>
-                <Text
-                    color="#aaa"
-                    cursor="pointer"
-                    fontWeight="600"
-                    onClick={() => navigate("/login")}
-                    _hover={{ color: "white" }}
-                    transition="color 0.2s"
-                >
-                    ← Volver al inicio de sesión
-                </Text>
+          >
+            <Text mb={2}>La contraseña debe contener:</Text>
+
+            <Flex direction="column" gap={1}>
+              <PasswordRequirement checked={passwordRequirements.length} label="Al menos 8 caracteres" />
+              <PasswordRequirement
+                checked={passwordRequirements.uppercase}
+                label="Al menos una letra mayuscula"
+              />
+              <PasswordRequirement
+                checked={passwordRequirements.lowercase}
+                label="Al menos una letra minuscula"
+              />
+              <PasswordRequirement checked={passwordRequirements.number} label="Al menos un numero" />
+              <PasswordRequirement
+                checked={passwordRequirements.special}
+                label="Al menos un caracter especial (@$!%*?&._-)"
+              />
             </Flex>
+          </Box>
 
-            <Heading as="h1" size="4xl" color="white" mb={4}>Registrarse</Heading>
+          <TextareaField
+            label="Biografia"
+            value={profileValues.bio}
+            minH="7rem"
+            maxLength={280}
+            helperText="Opcional. Maximo 280 caracteres."
+            onChange={(event) => updateProfileField("bio", event.target.value)}
+          />
 
-            <Box w={{ base: "90%", md: "50%" }} mx="auto" px={4}>
-                <Text color={isValidName === false ? "red.500" : "inherit"} mb={2}>{nameMessage}</Text>
-                <Input
-                    type="text"
-                    value={username}
-                    onChange={(e) => {
-                        setUsername(e.target.value);
-                        if (isValidName === false) {
-                            setIsValidName(null);
-                            setNameMessage("Ingrese un nombre de usuario");
-                        }
-                    }}
-                    bg="#454545"
-                    color="white"
-                    border="solid 0.05rem"
-                    borderColor={isValidName === false ? "red.500" : { base: "gray.300", _dark: "#ffffff" }}
-                    borderRadius="1rem"
-                    _placeholder={{ color: "gray.400" }}
-                    mb={4}
-                    _focus={{ border: "solid 0.05rem #7e7e7e", boxShadow: "none", outline: "none" }}
-                />
-
-                <Text color={isValidEmail === false ? "red.500" : "inherit"} mb={2}>{emailMessage}</Text>
-                <Input
-                    type="email"
-                    value={email}
-                    onChange={(e) => {
-                        setEmail(e.target.value);
-                        if (isValidEmail === false) {
-                            setIsValidEmail(null);
-                            setEmailMessage("Ingrese su correo electrónico");
-                        }
-                    }}
-                    bg="#454545"
-                    color="white"
-                    border="solid 0.05rem"
-                    borderColor={isValidEmail === false ? "red.500" : { base: "gray.300", _dark: "#ffffff" }}
-                    borderRadius="1rem"
-                    _placeholder={{ color: "gray.400" }}
-                    mb={4}
-                    _focus={{ border: "solid 0.05rem #7e7e7e", boxShadow: "none", outline: "none" }}
-                />
-
-                <Text color={isValidPassword === false ? "red.500" : "inherit"} mb={2}>{passwordMessage}</Text>
-                <Box pos="relative" display="flex" alignItems="center" mb={4}>
-                    <Input
-                        type={showPassword ? "text" : "password"}
-                        value={password}
-                        onChange={(e) => {
-                            setPassword(e.target.value);
-                            if (isValidPassword === false) {
-                                setIsValidPassword(null);
-                                setPasswordMessage("Ingrese su contraseña");
-                            }
-                        }}
-                        bg="#454545"
-                        color="white"
-                        border="solid 0.05rem"
-                        borderColor={isValidPassword === false ? "red.500" : { base: "gray.300", _dark: "#ffffff" }}
-                        borderRadius="1rem"
-                        _placeholder={{ color: "gray.400" }}
-                        _focus={{ border: "solid 0.05rem #7e7e7e", boxShadow: "none", outline: "none" }}
-                    />
-                    <Image
-                        position="absolute"
-                        right="1rem"
-                        top="50%"
-                        transform="translateY(-50%)"
-                        width="1.5rem"
-                        cursor="pointer"
-                        src={!showPassword ? "Text.svg" : "Password.svg"}
-                        alt="Mostrar u ocultar contraseña"
-                        onClick={handleTogglePassword}
-                    />
-                </Box>
-
-                <Box p={2} mb={4} borderRadius="md" className="no-select-no-click" bg="gray.800" color="white">
-                    <Text mb={2}>La contraseña debe contener:</Text>
-
-                    <Flex direction="column" gap={1}>
-                        <Checkbox.Root disabled checked={require.length} colorPalette="green">
-                            <Checkbox.HiddenInput />
-                            <Checkbox.Control>
-                                <Checkbox.Indicator />
-                            </Checkbox.Control>
-                            <Checkbox.Label>Al menos 8 caracteres</Checkbox.Label>
-                        </Checkbox.Root>
-                        <Checkbox.Root disabled checked={require.mayuscula} colorPalette="green">
-                            <Checkbox.HiddenInput />
-                            <Checkbox.Control>
-                                <Checkbox.Indicator />
-                            </Checkbox.Control>
-                            <Checkbox.Label>Al menos una letra mayúscula</Checkbox.Label>
-                        </Checkbox.Root>
-                        <Checkbox.Root disabled checked={require.minuscula} colorPalette="green">
-                            <Checkbox.HiddenInput />
-                            <Checkbox.Control>
-                                <Checkbox.Indicator />
-                            </Checkbox.Control>
-                            <Checkbox.Label>Al menos una letra minúscula</Checkbox.Label>
-                        </Checkbox.Root>
-                        <Checkbox.Root disabled checked={require.numero} colorPalette="green">
-                            <Checkbox.HiddenInput />
-                            <Checkbox.Control>
-                                <Checkbox.Indicator />
-                            </Checkbox.Control>
-                            <Checkbox.Label>Al menos un número</Checkbox.Label>
-                        </Checkbox.Root>
-                        <Checkbox.Root disabled checked={require.especial} colorPalette="green">
-                            <Checkbox.HiddenInput />
-                            <Checkbox.Control>
-                                <Checkbox.Indicator />
-                            </Checkbox.Control>
-                            <Checkbox.Label>Al menos un carácter especial (@$!%*?&._-)</Checkbox.Label>
-                        </Checkbox.Root>
-                    </Flex>
-                </Box>
-
-                <Button
-                    bg="white"
-                    color="black"
-                    w="100%"
-                    my={4}
-                    _hover={{ bg: "gray.200" }}
-                    onClick={handleValidateForm}
-                    borderRadius="1rem"
+          <Box pos="relative" w="100%" mb={4}>
+            <Text color="white" mb={1} fontSize="sm">
+              Area de especialidad (Opcional)
+            </Text>
+            <Box pos="relative">
+              <input
+                type="text"
+                placeholder="Buscar especialidad..."
+                value={profileValues.specialty}
+                onChange={(e) => updateProfileField("specialty", e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "0.5rem",
+                  borderRadius: "0.375rem",
+                  backgroundColor: "var(--surface-muted)",
+                  color: "white",
+                  border: "1px solid var(--border-color, #4A5568)",
+                  outline: "none"
+                }}
+                onFocus={() => setShowSpecialties(true)}
+                onBlur={() => setTimeout(() => setShowSpecialties(false), 200)}
+              />
+              {showSpecialties && specialties.length > 0 && (
+                <Box
+                  pos="absolute"
+                  top="100%"
+                  left={0}
+                  right={0}
+                  bg="gray.800"
+                  color="white"
+                  mt={1}
+                  borderRadius="md"
+                  maxH="200px"
+                  overflowY="auto"
+                  zIndex={10}
+                  boxShadow="lg"
+                  border="1px solid #4A5568"
                 >
-                    {!isSendingForm ? (
-                        "Registrarse"
-                    ) : (
-                        <Flex justify="center" align="center">
-                            <Text mr={3}>Registrándote...</Text>
-                            <Spinner size="sm" color="black" />
-                        </Flex>
-                    )}
-                </Button>
+                  {specialties
+                    .filter((s) => s.name.toLowerCase().includes(profileValues.specialty.toLowerCase()))
+                    .map((s) => (
+                      <Box
+                        key={s.id}
+                        p={2}
+                        _hover={{ bg: "gray.700" }}
+                        cursor="pointer"
+                        onClick={() => {
+                          updateProfileField("specialty", s.name);
+                          setShowSpecialties(false);
+                        }}
+                      >
+                        {s.name}
+                      </Box>
+                    ))}
+                </Box>
+              )}
             </Box>
+          </Box>
+
+          <AppButton w="100%" my={4} type="submit" disabled={Boolean(isSendingForm)}>
+            {!isSendingForm ? (
+              "Registrarse"
+            ) : (
+              <Flex justify="center" align="center">
+                <Text mr={3}>Registrando...</Text>
+                <Spinner size="sm" />
+              </Flex>
+            )}
+          </AppButton>
         </Box>
-    );
+      </Box>
+    </form>
+  );
+}
+
+function PasswordRequirement({ checked, label }: { checked: boolean; label: string }) {
+  return (
+    <Checkbox.Root disabled checked={checked} colorPalette="green">
+      <Checkbox.HiddenInput />
+      <Checkbox.Control>
+        <Checkbox.Indicator />
+      </Checkbox.Control>
+      <Checkbox.Label>{label}</Checkbox.Label>
+    </Checkbox.Root>
+  );
 }
 
 export default SignUp;

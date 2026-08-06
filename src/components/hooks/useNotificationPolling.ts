@@ -1,39 +1,66 @@
-import { useEffect } from 'react';
-import { api } from '../../services/api';
-import { isUserAuthenticated } from '../../utils/GlobalVariables';
-import { useNotificationStore } from '../../utils/NotificationStore';
+import { useEffect } from "react";
+import { useAuthSession } from "../../app/auth/AuthSessionContext";
+import { api } from "../../services/api";
+import { getToken } from "../../utils/GlobalVariables";
+import { useNotificationStore } from "../../utils/NotificationStore";
+import { useUserData } from "../../utils/UserStore";
+
+const isRecoverableAuthError = (error: unknown) => {
+  if (!(error instanceof Error)) return false;
+
+  const status = (error as Error & { status?: number }).status;
+  return (
+    (status === 401 || status === 404) &&
+    /^(No autorizado|Usuario no encontrado|Unauthorized)$/i.test(error.message)
+  );
+};
 
 export function useNotificationPolling() {
-    const setHasUnreadNotifications = useNotificationStore((state) => state.setHasUnreadNotifications);
+  const setHasUnreadNotifications = useNotificationStore((state) => state.setHasUnreadNotifications);
+  const { isAuthenticated, isLoading, user } = useAuthSession();
+  const storedEmail = useUserData((state) => state.email);
+  const canPoll = !isLoading && isAuthenticated && Boolean(user?.email || storedEmail);
 
-    useEffect(() => {
-        let intervalId: NodeJS.Timeout;
+  useEffect(() => {
+    if (!canPoll) {
+      setHasUnreadNotifications(false);
+      return;
+    }
 
-        const checkNotifications = async () => {
-            try {
-                const isAuthenticated = await isUserAuthenticated();
-                if (!isAuthenticated) return;
+    let isActive = true;
 
-                const res = await api.notifications.list(1);
+    const checkNotifications = async () => {
+      try {
+        const token = await getToken();
+        if (!token) {
+          if (isActive) setHasUnreadNotifications(false);
+          return;
+        }
 
-                const notifications = res.notifications || [];
-                if (notifications.length > 0) {
-                    setHasUnreadNotifications(true);
-                } else {
-                    setHasUnreadNotifications(false);
-                }
-            } catch {
-            }
-        };
+        const res = await api.notifications.list(1);
+        if (!isActive) return;
 
-        checkNotifications();
+        const notifications = res.notifications || [];
+        setHasUnreadNotifications(notifications.length > 0);
+      } catch (error: unknown) {
+        if (isRecoverableAuthError(error)) {
+          if (isActive) setHasUnreadNotifications(false);
+          return;
+        }
 
-        intervalId = setInterval(checkNotifications, 30000);
+        console.error("Error polling notifications:", error);
+      }
+    };
 
-        return () => {
-            if (intervalId) clearInterval(intervalId);
-        };
-    }, [setHasUnreadNotifications]);
+    void checkNotifications();
 
-    return null;
+    const intervalId = setInterval(checkNotifications, 30000);
+
+    return () => {
+      isActive = false;
+      clearInterval(intervalId);
+    };
+  }, [canPoll, setHasUnreadNotifications]);
+
+  return null;
 }

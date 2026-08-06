@@ -1,150 +1,117 @@
-import { useLocation, useNavigate } from "react-router-dom";
-import { paths } from "../utils/GlobalVariables";
-import { Flex, Image, Tooltip, Box } from "@chakra-ui/react";
-import { useNotificationStore } from "../utils/NotificationStore";
+import { useNavigate } from "react-router-dom";
+import { Box, Flex, Image, chakra } from "@chakra-ui/react";
+import { FaMoon, FaSun } from "react-icons/fa";
+import { useThemeStore } from "../utils/ThemeStore";
+import { useAppNavigation, type AppNavigationItem } from "./navigation/useAppNavigation";
 
-const NavTooltip = ({ label, children }: { label: string, children: React.ReactNode }) => {
-    return (
-        <Tooltip.Root positioning={{ placement: "bottom" }} openDelay={200} closeDelay={0}>
-            <Tooltip.Trigger asChild>
-                {children}
-            </Tooltip.Trigger>
-            <Tooltip.Positioner>
-                <Tooltip.Arrow>
-                    <Tooltip.ArrowTip />
-                </Tooltip.Arrow>
-                <Tooltip.Content bg="#000000" color="white" px={2} py={1} borderRadius="md" fontSize="sm">
-                    {label}
-                </Tooltip.Content>
-            </Tooltip.Positioner>
-        </Tooltip.Root>
-    );
-};
-
-function SideNav() {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const currentPath = location.pathname;
-
-    const hasUnreadNotifications = useNotificationStore((state) => state.hasUnreadNotifications);
-
-    const isSideNavVisible = !paths.showLogoOnly && paths.showSideNav;
-
-    return (
-        <Flex
-            direction="column"
-            justify="space-around"
-            align="center"
-            w={paths.showLogoOnly ? "100%" : "20%"}
-            py={4}
-            userSelect="none"
-            h={isSideNavVisible ? "100dvh" : "auto"}
-            pos={isSideNavVisible ? "sticky" : "static"}
-            top={0}
-            bg="#000000"
-            borderRight="none"
-            borderColor="gray.200"
-            mx={!isSideNavVisible ? "auto" : undefined}
-        >
-            {paths.showLogoOnly ? (
-                <Image
-                    src="Logo.svg"
-                    alt="Logo"
-                    mx="auto"
-                    w="7rem"
-                />
-            ) : paths.showSideNav ? (
-                <>
-                    <NavTooltip label="Logo">
-                        <Box w="100%" display="flex" justifyContent="center">
-                            <Image
-                                src="Logo.svg"
-                                alt="Logo"
-                                w="20%"
-                            />
-                        </Box>
-                    </NavTooltip>
-
-                    <Box pb={24}></Box>
-
-                    <NavTooltip label="Buscar">
-                        <Box w="100%" display="flex" justifyContent="center">
-                            <Image
-                                src={currentPath === "/search" ? "Search_Active.svg" : "Search.svg"}
-                                alt="Search"
-                                cursor="pointer"
-                                onClick={() => navigate("/search")}
-                                w="15%"
-                            />
-                        </Box>
-                    </NavTooltip>
-
-                    <NavTooltip label="Notificaciones">
-                        <Box w="100%" display="flex" justifyContent="center" pos="relative">
-                            <Box pos="relative" w="15%">
-                                <Image
-                                    src={currentPath === "/notifications" ? "Messages_Active.svg" : "Messages.svg"}
-                                    alt="Messages"
-                                    cursor="pointer"
-                                    onClick={() => navigate("/notifications")}
-                                    w="100%"
-                                />
-                                {hasUnreadNotifications && (
-                                    <Box
-                                        pos="absolute"
-                                        top="-2px"
-                                        right="-2px"
-                                        w="10px"
-                                        h="10px"
-                                        bg="#3b82f6"
-                                        borderRadius="full"
-                                        border="2px solid black"
-                                        animation="pulse-glow 2s infinite"
-                                    />
-                                )}
-                            </Box>
-                        </Box>
-                    </NavTooltip>
-
-                    <NavTooltip label="Crear publicación">
-                        <Box w="100%" display="flex" justifyContent="center">
-                            <Image
-                                src={currentPath === "/create-publication" ? "AddPublication_Active.svg" : "AddPublication.svg"}
-                                alt="AddPublication"
-                                cursor="pointer"
-                                onClick={() => navigate("/create-publication")}
-                                w="15%"
-                            />
-                        </Box>
-                    </NavTooltip>
-
-                    <NavTooltip label="Inicio">
-                        <Box w="100%" display="flex" justifyContent="center">
-                            <Image
-                                src={currentPath === "/" ? "Home_Active.svg" : "Home.svg"}
-                                alt="Home"
-                                cursor="pointer"
-                                onClick={() => navigate("/")}
-                                w="15%"
-                            />
-                        </Box>
-                    </NavTooltip>
-
-                    <NavTooltip label="Perfil">
-                        <Box w="100%" display="flex" justifyContent="center">
-                            <Image
-                                src={currentPath === "/my-profile" ? "Profile_Active.svg" : "Profile.svg"}
-                                alt="ProfileImage"
-                                cursor="pointer"
-                                onClick={() => navigate("/my-profile")}
-                                w="15%"
-                            />
-                        </Box>
-                    </NavTooltip>
-                </>
-            ) : null}
-        </Flex>
-    );
+interface SideNavItemProps {
+  item: AppNavigationItem;
+  onClick: () => void;
+  emphasis?: boolean;
 }
 
-export default SideNav;
+function SideNavItem({ item, onClick, emphasis = false }: SideNavItemProps) {
+  const Icon = item.Icon;
+
+  return (
+    <chakra.button
+      type="button"
+      aria-label={item.label}
+      aria-current={item.isActive ? "page" : undefined}
+      title={item.label}
+      position="relative"
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+      color={item.isActive ? "var(--nav-active)" : "var(--nav-muted)"}
+      w={emphasis ? "3.5rem" : "3.25rem"}
+      h={emphasis ? "3.5rem" : "3.25rem"}
+      borderRadius="control"
+      cursor="pointer"
+      bg={item.isActive ? "var(--nav-active-bg)" : "transparent"}
+      border={emphasis ? "1px solid var(--nav-border)" : "1px solid transparent"}
+      transition="background-color 0.2s ease, color 0.2s ease"
+      _hover={{ color: "var(--nav-active)", bg: "var(--nav-hover-bg)" }}
+      onClick={onClick}
+    >
+      <Icon size={emphasis ? 27 : 22} aria-hidden="true" />
+      {item.hasIndicator && (
+        <Box
+          pos="absolute"
+          top="7px"
+          right="7px"
+          w="10px"
+          h="10px"
+          bg="#3b82f6"
+          borderRadius="full"
+          border="2px solid var(--bg-color)"
+          animation="pulse-glow 2s infinite"
+        />
+      )}
+    </chakra.button>
+  );
+}
+
+function ThemeToggle() {
+  const { theme, toggleTheme } = useThemeStore();
+  const nextThemeLabel = theme === "dark" ? "modo claro" : "modo oscuro";
+
+  return (
+    <button
+      type="button"
+      onClick={toggleTheme}
+      className="theme-toggle"
+      aria-label={`Cambiar a ${nextThemeLabel}`}
+      title={`Cambiar a ${nextThemeLabel}`}
+      aria-pressed={theme === "light"}
+    >
+      {theme === "dark" ? <FaSun aria-hidden="true" /> : <FaMoon aria-hidden="true" />}
+    </button>
+  );
+}
+
+export default function SideNav() {
+  const navigate = useNavigate();
+  const { desktopTopItems, desktopCreateItem, desktopBottomItems } = useAppNavigation();
+
+  return (
+    <Flex
+      as="aside"
+      direction="column"
+      align="center"
+      className="app-sidebar no-select"
+      bg="var(--bg-color)"
+      color="var(--text-color)"
+      borderRight="1px solid var(--nav-border)"
+      transition="background-color 0.3s ease, border-right-color 0.3s ease"
+    >
+      <Box pt={4} pb={6}>
+        <Image
+          src="/skillswap_logo_vector.svg"
+          alt="Logo"
+          w="4.25rem"
+          maxW="4.25rem"
+          cursor="pointer"
+          className="no-filter"
+          onClick={() => navigate("/")}
+        />
+      </Box>
+
+      <Flex direction="column" align="center" gap={3} flex="1" w="100%">
+        {desktopTopItems.map((item) => (
+          <SideNavItem key={item.id} item={item} onClick={() => navigate(item.path)} />
+        ))}
+        {desktopCreateItem && (
+          <SideNavItem item={desktopCreateItem} emphasis onClick={() => navigate(desktopCreateItem.path)} />
+        )}
+      </Flex>
+
+      <Flex direction="column" align="center" gap={3} w="100%" pb={4}>
+        {desktopBottomItems.map((item) => (
+          <SideNavItem key={item.id} item={item} onClick={() => navigate(item.path)} />
+        ))}
+        <ThemeToggle />
+      </Flex>
+    </Flex>
+  );
+}

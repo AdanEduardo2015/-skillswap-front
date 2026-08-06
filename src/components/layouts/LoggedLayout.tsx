@@ -1,73 +1,26 @@
-import { Outlet, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { fetchAuthSession } from "aws-amplify/auth";
-import { useUserData } from "../../utils/UserStore";
-import RequireAuthModal from "../modals/RequireAuthModal";
+import { Outlet } from "react-router-dom";
+import { useAuthSession } from "../../app/auth/AuthSessionContext";
 
 export type AuthContext = {
-    isAuthenticated: boolean;
-    email: string | null;
-    name: string | null;
-    picture: string | null;
+  isAuthenticated: boolean;
+  email: string | null;
+  name: string | null;
+  picture: string | null;
+  role: string | null;
 };
 
 export default function LoggedLayout() {
-    const navigate = useNavigate();
-    const { name, email, profilePictureUrl, setName, setEmail, setProfilePictureUrl } = useUserData();
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-    const [showModal, setShowModal] = useState(false);
+  const authSession = useAuthSession();
 
-    useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                const { tokens } = await fetchAuthSession();
-                const idToken = tokens?.idToken;
+  if (authSession.isLoading || !authSession.user) return null;
 
-                if (!idToken) {
-                    setIsAuthenticated(false);
-                    setShowModal(true);
-                    return;
-                }
+  const authContext: AuthContext = {
+    isAuthenticated: authSession.isAuthenticated,
+    email: authSession.user.email,
+    name: authSession.user.name,
+    picture: authSession.user.picture,
+    role: authSession.user.role,
+  };
 
-                const payload = idToken.payload;
-
-                setName((payload.name as string) ?? null);
-                setEmail((payload.email as string) ?? null);
-                setProfilePictureUrl((payload.picture as string) ?? null);
-                setIsAuthenticated(true);
-            } catch {
-                setIsAuthenticated(false);
-                setShowModal(true);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        checkAuth();
-    }, []);
-
-    if (isLoading) return null;
-
-    const authContext: AuthContext = {
-        isAuthenticated,
-        email,
-        name,
-        picture: profilePictureUrl,
-    };
-
-    if (!isAuthenticated) {
-        return (
-            <RequireAuthModal
-                isOpen={showModal}
-                onClose={() => {
-                    setShowModal(false);
-                    navigate("/");
-                }}
-                message="Esta página es exclusiva para usuarios registrados. Por favor inicia sesión para continuar."
-            />
-        );
-    }
-
-    return <Outlet context={authContext} />;
+  return <Outlet context={authContext} />;
 }

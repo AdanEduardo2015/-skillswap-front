@@ -1,37 +1,38 @@
 import { Box, Flex } from "@chakra-ui/react";
 import ComuniRed from "../../ComuniRed";
-import SideNav from "../SideNav";
+import type { RouteLayoutState } from "../../app/router/routeLayout";
 
-export default function DesktopLayout({ pathsState }: any) {
-    if (pathsState.showLogoOnly) {
-        return <DesktopLogoOnlyLayout pathsState={pathsState} />;
-    }
-
-    return <DesktopFullLayout pathsState={pathsState} />;
+interface LegacyLayoutProps {
+  pathsState: RouteLayoutState;
 }
 
-function DesktopFullLayout({ pathsState }: any) {
-    return (
-        <Flex minH="100vh">
-            {pathsState.showSideNav && <SideNav />}
+/**
+ * @deprecated RootLayout is the active layout entry point after Phase 1.
+ */
+export default function DesktopLayout({ pathsState }: LegacyLayoutProps) {
+  if (pathsState.showLogoOnly) {
+    return <DesktopLogoOnlyLayout />;
+  }
 
-            <Box flexGrow={1} w="100%">
-                <ComuniRed />
-            </Box>
-        </Flex>
-    );
+  return <DesktopFullLayout />;
 }
 
-
-function DesktopLogoOnlyLayout({ pathsState }: any) {
-    return (
-        <Flex direction="column" minH="100vh">
-            {pathsState.showSideNav && <SideNav />}
-
-            <Box flexGrow={1}>
-                <ComuniRed />
-            </Box>
-        </Flex>
-    );
+function DesktopFullLayout() {
+  return (
+    <Flex minH="100vh">
+      <Box flexGrow={1} w="100%">
+        <ComuniRed />
+      </Box>
+    </Flex>
+  );
 }
 
+function DesktopLogoOnlyLayout() {
+  return (
+    <Flex direction="column" minH="100vh">
+      <Box flexGrow={1}>
+        <ComuniRed />
+      </Box>
+    </Flex>
+  );
+}

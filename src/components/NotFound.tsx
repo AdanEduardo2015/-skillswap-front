@@ -1,11 +1,13 @@
-import { Flex, Heading } from "@chakra-ui/react";
+import EmptyState from "../shared/ui/EmptyState";
 
 function NotFound() {
-    return (
-        <Flex justify="center" minH="100vh" mt={5}>
-            <Heading as="h1" size="4xl" color="white">Error 404 página no encontrada</Heading>
-        </Flex>
-    );
+  return (
+    <EmptyState
+      title="Error 404 pagina no encontrada"
+      description="La ruta solicitada no existe o fue movida."
+      minH="100vh"
+    />
+  );
 }
 
 export default NotFound;
