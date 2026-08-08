@@ -395,9 +395,7 @@ function CategoryRow({
           </AppButton>
           <AppButton
             type="button"
-            bg={isInactive ? "green.600" : "red.600"}
-            color="white"
-            _hover={{ bg: isInactive ? "green.700" : "red.700" }}
+            tone={isInactive ? "primary" : "danger"}
             onClick={onToggleActive}
           >
             {isInactive ? "Activar" : "Desactivar"}
