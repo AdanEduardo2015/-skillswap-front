@@ -244,8 +244,9 @@ export default function PublicationComments({
                         align="center"
                         px={3}
                         py={1.5}
+                        color="var(--text-color)"
                         cursor="pointer"
-                        _hover={{ bg: "var(--ghost-hover-bg)" }}
+                        _hover={{ bg: "var(--ghost-hover-bg)", color: "var(--bg-color)" }}
                         onClick={(e) => {
                           e.stopPropagation();
                           setShowOptionsId(null);
@@ -260,7 +261,7 @@ export default function PublicationComments({
                           alt="Editar"
                           style={{ filter: "var(--svg-filter)" }}
                         />
-                        <Text fontSize="xs" color="var(--text-color)" fontWeight="bold">
+                        <Text fontSize="xs" color="inherit" fontWeight="bold">
                           Editar
                         </Text>
                       </Flex>
@@ -270,8 +271,9 @@ export default function PublicationComments({
                       align="center"
                       px={3}
                       py={1.5}
+                      color="red.500"
                       cursor="pointer"
-                      _hover={{ bg: "var(--ghost-hover-bg)" }}
+                      _hover={{ bg: "var(--ghost-hover-bg)", color: "var(--bg-color)" }}
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowOptionsId(null);
@@ -279,7 +281,7 @@ export default function PublicationComments({
                       }}
                     >
                       <Image src="/Delete.svg" width="16px" mr={2} alt="Eliminar" />
-                      <Text fontSize="xs" color="red.500" fontWeight="bold">
+                      <Text fontSize="xs" color="inherit" fontWeight="bold">
                         Eliminar
                       </Text>
                     </Flex>

@@ -128,9 +128,10 @@ export default function PublicationHeader({
                     align="center"
                     px={4}
                     py={2}
+                    color="var(--text-color)"
                     cursor={post.approvalStatus === "pending" && globalRole !== "admin" ? "not-allowed" : "pointer"}
                     opacity={post.approvalStatus === "pending" && globalRole !== "admin" ? 0.5 : 1}
-                    _hover={{ bg: post.approvalStatus === "pending" && globalRole !== "admin" ? undefined : "var(--ghost-hover-bg)" }}
+                    _hover={{ bg: post.approvalStatus === "pending" && globalRole !== "admin" ? undefined : "var(--ghost-hover-bg)", color: post.approvalStatus === "pending" && globalRole !== "admin" ? undefined : "var(--bg-color)" }}
                     title={post.approvalStatus === "pending" && globalRole !== "admin" ? "No se puede editar mientras está en revisión" : undefined}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -140,7 +141,7 @@ export default function PublicationHeader({
                     }}
                   >
                     <Image src="/Edit.svg" width="20px" mr={3} alt="Editar" />
-                    <Text fontSize="sm" color="var(--text-color)" fontWeight="bold">
+                    <Text fontSize="sm" color="inherit" fontWeight="bold">
                       Editar
                     </Text>
                   </Flex>
@@ -151,8 +152,9 @@ export default function PublicationHeader({
                     align="center"
                     px={4}
                     py={2}
+                    color="red.500"
                     cursor="pointer"
-                    _hover={{ bg: "var(--ghost-hover-bg)" }}
+                    _hover={{ bg: "var(--ghost-hover-bg)", color: "var(--bg-color)" }}
                     onClick={(e) => {
                       e.stopPropagation();
                       setShowOptions(false);
@@ -160,7 +162,7 @@ export default function PublicationHeader({
                     }}
                   >
                     <Image src="/Delete.svg" width="20px" mr={3} alt="Eliminar" />
-                    <Text fontSize="sm" color="red.500" fontWeight="bold">
+                    <Text fontSize="sm" color="inherit" fontWeight="bold">
                       Eliminar
                     </Text>
                   </Flex>
