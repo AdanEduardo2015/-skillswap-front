@@ -276,7 +276,7 @@ export default function AdminCategories() {
                 Cancelar
               </AppButton>
             )}
-            <AppButton type="button" onClick={() => void handleSave()} disabled={isSaving}>
+            <AppButton type="button" bg="#000000" color="#ffffff" _hover={{ bg: "#333333" }} onClick={() => void handleSave()} disabled={isSaving}>
               {isSaving ? (
                 <Spinner size="sm" />
               ) : editingCategoryId ? (
@@ -390,12 +390,14 @@ function CategoryRow({
         </Box>
 
         <Flex gap={2} align="center" justify={{ base: "flex-start", md: "flex-end" }} wrap="wrap">
-          <AppButton type="button" tone="secondary" onClick={onEdit}>
+          <AppButton type="button" bg="#000000" color="#ffffff" _hover={{ bg: "#333333" }} onClick={onEdit}>
             Editar
           </AppButton>
           <AppButton
             type="button"
-            tone={isInactive ? "primary" : "danger"}
+            bg={isInactive ? "#000000" : "#ef4444"}
+            color="#ffffff"
+            _hover={{ bg: isInactive ? "#333333" : "#dc2626" }}
             onClick={onToggleActive}
           >
             {isInactive ? "Activar" : "Desactivar"}
