@@ -18,10 +18,10 @@ const toneStyles: Record<AppButtonTone, Partial<ButtonProps>> = {
     _hover: { bg: "var(--button-text)", color: "var(--button-bg)", borderColor: "var(--button-bg)" },
   },
   secondary: {
-    bg: "var(--button-text)",
-    color: "var(--button-bg)",
-    border: "1px solid var(--button-bg)",
-    _hover: { bg: "var(--button-bg)", color: "var(--button-text)" },
+    bg: "#000000",
+    color: "#ffffff",
+    border: "1px solid #ffffff",
+    _hover: { bg: "#ffffff", color: "#000000", borderColor: "#000000" },
   },
   ghost: {
     bg: "transparent",
@@ -30,10 +30,10 @@ const toneStyles: Record<AppButtonTone, Partial<ButtonProps>> = {
     _hover: { borderColor: "var(--text-color)" },
   },
   danger: {
-    bg: "var(--button-text)",
-    color: "var(--button-bg)",
-    border: "2px dashed var(--button-bg)",
-    _hover: { bg: "var(--button-bg)", color: "var(--button-text)", borderStyle: "solid" },
+    bg: "#000000",
+    color: "#ffffff",
+    border: "2px dashed #ffffff",
+    _hover: { bg: "#ffffff", color: "#000000", borderStyle: "solid", borderColor: "#000000" },
   },
 };
 
