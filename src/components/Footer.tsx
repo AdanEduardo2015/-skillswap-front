@@ -26,14 +26,14 @@ function FooterItem({ item, onClick }: FooterItemProps) {
       display="flex"
       alignItems="center"
       justifyContent="center"
-      color={item.isActive ? "var(--nav-active)" : "var(--nav-muted)"}
+      color={item.isActive ? "var(--bg-color)" : "var(--nav-muted)"}
       w="3rem"
       h="3rem"
       borderRadius="control"
       cursor="pointer"
-      bg="transparent"
+      bg={item.isActive ? "var(--nav-active-bg)" : "transparent"}
       transition="background-color 0.2s ease, color 0.2s ease"
-      _hover={{ color: "var(--nav-active)", bg: "var(--nav-hover-bg)" }}
+      _hover={{ color: "var(--bg-color)", bg: "var(--nav-hover-bg)" }}
       onClick={onClick}
     >
       <Icon size={22} aria-hidden="true" />
@@ -119,13 +119,13 @@ function Footer() {
                       w="3rem"
                       h="3rem"
                       borderRadius="control"
-                      color={isAdminMenuOpen ? "var(--nav-active)" : "var(--nav-muted)"}
+                      color={isAdminMenuOpen ? "var(--bg-color)" : "var(--nav-muted)"}
                       display="flex"
                       alignItems="center"
                       justifyContent="center"
                       bg={isAdminMenuOpen ? "var(--nav-active-bg)" : "transparent"}
                       transition="background-color 0.2s ease, color 0.2s ease"
-                      _hover={{ color: "var(--nav-active)", bg: "var(--nav-hover-bg)" }}
+                      _hover={{ color: "var(--bg-color)", bg: "var(--nav-hover-bg)" }}
                       aria-expanded={isAdminMenuOpen}
                       aria-label="Abrir menú administrador"
                     >
@@ -225,10 +225,10 @@ function Footer() {
                       w="100%"
                       borderRadius="control"
                       bg={item.isActive ? "var(--nav-active-bg)" : "var(--surface-elevated)"}
-                      color={item.isActive ? "var(--nav-active)" : "var(--text-color)"}
+                      color={item.isActive ? "var(--bg-color)" : "var(--text-color)"}
                       border="1px solid"
                       borderColor={item.isActive ? "var(--nav-active)" : "var(--card-border)"}
-                      _hover={{ bg: "var(--nav-hover-bg)", transform: "translateY(-1px)" }}
+                      _hover={{ bg: "var(--nav-hover-bg)", color: "var(--bg-color)", transform: "translateY(-1px)" }}
                       textAlign="center"
                       transition="all 0.2s ease"
                     >

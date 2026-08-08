@@ -23,7 +23,7 @@ function SideNavItem({ item, onClick, emphasis = false }: SideNavItemProps) {
       display="flex"
       alignItems="center"
       justifyContent="center"
-      color={item.isActive ? "var(--nav-active)" : "var(--nav-muted)"}
+      color={item.isActive ? "var(--bg-color)" : "var(--nav-muted)"}
       w={emphasis ? "3.5rem" : "3.25rem"}
       h={emphasis ? "3.5rem" : "3.25rem"}
       borderRadius="control"
@@ -31,7 +31,7 @@ function SideNavItem({ item, onClick, emphasis = false }: SideNavItemProps) {
       bg={item.isActive ? "var(--nav-active-bg)" : "transparent"}
       border={emphasis ? "1px solid var(--nav-border)" : "1px solid transparent"}
       transition="background-color 0.2s ease, color 0.2s ease"
-      _hover={{ color: "var(--nav-active)", bg: "var(--nav-hover-bg)" }}
+      _hover={{ color: "var(--bg-color)", bg: "var(--nav-hover-bg)" }}
       onClick={onClick}
     >
       <Icon size={emphasis ? 27 : 22} aria-hidden="true" />
