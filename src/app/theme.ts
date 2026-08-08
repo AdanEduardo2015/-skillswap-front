@@ -21,19 +21,33 @@ export const system = createSystem(defaultConfig, {
           800: { value: "var(--surface-muted)" },
         },
         brand: {
-          50: { value: "#eef6ff" },
-          100: { value: "#d8ebff" },
-          500: { value: "#2f80ed" },
-          600: { value: "#1f6fd1" },
-          900: { value: "#10233f" },
+          50: { value: "var(--bg-color)" },
+          100: { value: "var(--bg-color)" },
+          500: { value: "var(--text-color)" },
+          600: { value: "var(--text-color)" },
+          900: { value: "var(--text-color)" },
         },
         accent: {
-          500: { value: "#35c27f" },
-          700: { value: "#1d8f58" },
+          500: { value: "var(--text-color)" },
+          700: { value: "var(--text-color)" },
         },
         danger: {
-          500: { value: "#ef4444" },
-          700: { value: "#b91c1c" },
+          500: { value: "var(--text-color)" },
+          700: { value: "var(--text-color)" },
+        },
+        red: {
+          400: { value: "var(--text-color)" },
+          500: { value: "var(--text-color)" },
+          600: { value: "var(--text-color)" },
+          900: { value: "var(--text-color)" },
+        },
+        green: {
+          400: { value: "var(--text-color)" },
+          500: { value: "var(--text-color)" },
+        },
+        yellow: {
+          400: { value: "var(--text-color)" },
+          500: { value: "var(--text-color)" },
         },
         surface: {
           50: { value: "var(--surface-bg)" },

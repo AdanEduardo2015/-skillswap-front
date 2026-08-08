@@ -64,10 +64,10 @@ export default function RootLayout({ pathsState }: RootLayoutProps) {
             <Box
               w="100%"
               p={4}
-              bg="rgba(239, 68, 68, 0.1)"
+              bg="var(--surface-muted)"
               borderRadius="control"
               border="1px solid"
-              borderColor="red.900"
+              borderColor="var(--text-color)"
               textAlign="left"
             >
               <Text fontWeight="bold" mb={1} color="red.400">

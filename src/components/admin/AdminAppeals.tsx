@@ -177,7 +177,7 @@ export default function AdminAppeals() {
   return (
     <Box minH="100vh" px={{ base: 4, md: 8 }} py={6} color="var(--text-color)">
       <Flex align="center" gap={3} mb={2}>
-        <FaBalanceScale size={28} color="var(--brand-primary, #3b82f6)" />
+        <FaBalanceScale size={28} color="var(--text-color)" />
         <Heading as="h1" size="4xl">
           Apelaciones
         </Heading>

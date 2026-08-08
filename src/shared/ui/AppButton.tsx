@@ -14,22 +14,26 @@ const toneStyles: Record<AppButtonTone, Partial<ButtonProps>> = {
   primary: {
     bg: "var(--button-bg)",
     color: "var(--button-text)",
-    _hover: { bg: "var(--button-hover-bg)" },
+    border: "1px solid var(--button-bg)",
+    _hover: { bg: "var(--button-text)", color: "var(--button-bg)", borderColor: "var(--button-bg)" },
   },
   secondary: {
-    bg: "brand.500",
-    color: "white",
-    _hover: { bg: "brand.600" },
+    bg: "var(--button-text)",
+    color: "var(--button-bg)",
+    border: "1px solid var(--button-bg)",
+    _hover: { bg: "var(--button-bg)", color: "var(--button-text)" },
   },
   ghost: {
     bg: "transparent",
-    color: "var(--text-muted)",
-    _hover: { color: "var(--text-color)", bg: "var(--ghost-hover-bg)" },
+    color: "var(--text-color)",
+    border: "1px solid transparent",
+    _hover: { borderColor: "var(--text-color)" },
   },
   danger: {
-    bg: "danger.500",
-    color: "white",
-    _hover: { bg: "danger.700" },
+    bg: "var(--button-text)",
+    color: "var(--button-bg)",
+    border: "2px dashed var(--button-bg)",
+    _hover: { bg: "var(--button-bg)", color: "var(--button-text)", borderStyle: "solid" },
   },
 };
 

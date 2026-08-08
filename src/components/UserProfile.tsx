@@ -282,7 +282,7 @@ function UserProfile() {
                 return (
                   <Box
                     key={sanction.id}
-                    bg="rgba(245, 158, 11, 0.15)"
+                    bg="var(--surface-muted)"
                     border="1px solid #f59e0b"
                     borderRadius="panel"
                     p={4}
@@ -303,7 +303,7 @@ function UserProfile() {
                 return (
                   <Box
                     key={sanction.id}
-                    bg="rgba(239, 68, 68, 0.15)"
+                    bg="var(--surface-muted)"
                     border="1px solid #ef4444"
                     borderRadius="panel"
                     p={4}
@@ -332,7 +332,7 @@ function UserProfile() {
                 return (
                   <Box
                     key={sanction.id}
-                    bg="rgba(239, 68, 68, 0.2)"
+                    bg="var(--surface-muted)"
                     border="2px solid #ef4444"
                     borderRadius="panel"
                     p={4}
@@ -353,7 +353,7 @@ function UserProfile() {
                 return (
                   <Box
                     key={sanction.id}
-                    bg="rgba(239, 68, 68, 0.15)"
+                    bg="var(--surface-muted)"
                     border="1px solid #ef4444"
                     borderRadius="panel"
                     p={4}

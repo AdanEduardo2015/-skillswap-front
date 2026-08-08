@@ -228,19 +228,19 @@ export default function MyProfile() {
 
               let sanctionTitle = "🚫 Sanción de Cuenta";
               let borderColor = "#ef4444";
-              let bgColor = "rgba(239, 68, 68, 0.15)";
+              let bgColor = "var(--surface-muted)";
               let titleColor = "red.400";
 
               if (sanction.type === "warning") {
                 sanctionTitle = "⚠️ Advertencia de Cuenta";
                 borderColor = "#f59e0b";
-                bgColor = "rgba(245, 158, 11, 0.15)";
+                bgColor = "var(--surface-muted)";
                 titleColor = "yellow.400";
               } else if (sanction.type === "temporary_ban") {
                 sanctionTitle = "🚫 Baneo Temporal";
               } else if (sanction.type === "permanent_ban") {
                 sanctionTitle = "💀 Baneo Permanente";
-                bgColor = "rgba(239, 68, 68, 0.2)";
+                bgColor = "var(--surface-muted)";
                 titleColor = "red.500";
               } else if (sanction.type === "content_restriction") {
                 sanctionTitle = "Restricción de Contenido";
@@ -302,7 +302,7 @@ export default function MyProfile() {
                   {/* Status of appeal if already sent */}
                   {existingAppeal && (
                     <Box
-                      bg="rgba(0, 0, 0, 0.25)"
+                      bg="var(--surface-muted)"
                       borderRadius="control"
                       p={3}
                       mt={2}
