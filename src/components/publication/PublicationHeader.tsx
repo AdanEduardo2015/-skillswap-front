@@ -124,6 +124,7 @@ export default function PublicationHeader({
               >
                 {(post.canUpdate || globalRole === "admin") && (
                   <Flex
+                    className="dropdown-item"
                     align="center"
                     px={4}
                     py={2}
@@ -146,6 +147,7 @@ export default function PublicationHeader({
                 )}
                 {(post.canDelete || globalRole === "admin") && (
                   <Flex
+                    className="dropdown-item"
                     align="center"
                     px={4}
                     py={2}

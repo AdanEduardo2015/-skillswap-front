@@ -16,6 +16,7 @@
   --input-placeholder: #ffffff;
   --input-focus-border: #ffffff;
   --svg-filter: none;
+  --svg-filter-invert: invert(1);
   --loader-border: #000000;
   --loader-top: #ffffff;
   --button-bg: #ffffff;
@@ -54,6 +55,7 @@
   --input-placeholder: #000000;
   --input-focus-border: #000000;
   --svg-filter: invert(1);
+  --svg-filter-invert: none;
   --loader-border: #ffffff;
   --loader-top: #000000;
   --button-bg: #000000;
@@ -372,6 +374,23 @@ body .app-navbar.app-navbar--desktop {
   to {
     transform: rotate(360deg);
   }
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+.dropdown-item:hover, .dropdown-item:focus {
+  background-color: var(--ghost-hover-bg) !important;
+  color: var(--bg-color) !important;
+}
+
+.dropdown-item:hover p, .dropdown-item:focus p {
+  color: var(--bg-color) !important;
+}
+
+.dropdown-item:hover img, .dropdown-item:focus img {
+  filter: var(--svg-filter-invert) !important;
 }
 
 .theme-toggle {

@@ -240,6 +240,7 @@ export default function PublicationComments({
                   >
                     {(c.canUpdate || globalRole === "admin") && (
                       <Flex
+                        className="dropdown-item"
                         align="center"
                         px={3}
                         py={1.5}
@@ -265,6 +266,7 @@ export default function PublicationComments({
                       </Flex>
                     )}
                     <Flex
+                      className="dropdown-item"
                       align="center"
                       px={3}
                       py={1.5}
