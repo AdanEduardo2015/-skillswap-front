@@ -47,7 +47,6 @@ function Login() {
       setIsValidEmail(false);
       return false;
     }
-    setEmailMessage("Enviando correo...");
     setIsValidEmail(true);
     return true;
   };
@@ -58,7 +57,6 @@ function Login() {
       setIsValidPassword(false);
       return false;
     }
-    setPasswordMessage("Enviando contraseña...");
     setIsValidPassword(true);
     return true;
   };
@@ -110,8 +108,6 @@ function Login() {
       setIsSendingForm(false);
       setIsValidEmail(null);
       setIsValidPassword(null);
-      setPasswordMessage("Ingrese una contraseña");
-      setEmailMessage("Ingrese su correo electronico");
       setLoginFailedMessage("");
       setEmail("");
       setPassword("");
@@ -169,13 +165,16 @@ function Login() {
           <Heading as="h1" size="4xl" color="white" mb={4}>
             Iniciar sesion
           </Heading>
-          <Heading as="h3" color="red.500" textAlign="center" mb={5} fontSize="lg">
-            {loginFailedMessage}
-          </Heading>
+          {loginFailedMessage && (
+            <Text color="#dc2626" fontWeight="medium" my={2} textAlign="center" fontSize="lg">
+              {loginFailedMessage}
+            </Text>
+          )}
 
           <Box w={{ base: "90%", md: "50%" }} mx="auto" px={4}>
             <TextField
-              label={emailMessage}
+              label="Correo electrónico"
+              errorText={isValidEmail === false ? emailMessage : undefined}
               isInvalid={isValidEmail === false}
               type="email"
               value={email}
@@ -183,13 +182,13 @@ function Login() {
                 setEmail(event.target.value);
                 if (isValidEmail === false) {
                   setIsValidEmail(null);
-                  setEmailMessage("Ingrese su correo electronico");
                 }
               }}
             />
 
             <TextField
-              label={passwordMessage}
+              label="Contraseña"
+              errorText={isValidPassword === false ? passwordMessage : undefined}
               isInvalid={isValidPassword === false}
               type={showPassword ? "text" : "password"}
               value={password}
@@ -197,7 +196,6 @@ function Login() {
                 setPassword(event.target.value);
                 if (isValidPassword === false) {
                   setIsValidPassword(null);
-                  setPasswordMessage("Ingrese su contraseña");
                 }
               }}
               rightElement={
