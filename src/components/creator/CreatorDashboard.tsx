@@ -121,8 +121,9 @@ export default function CreatorDashboard() {
                   cursor="pointer"
                   borderRadius="panel"
                   p={2}
+                  color="var(--text-color)"
                   transition="all 0.2s ease"
-                  _hover={{ bg: "var(--ghost-hover-bg)", transform: "translateY(-1px)" }}
+                  _hover={{ bg: "var(--ghost-hover-bg)", transform: "translateY(-1px)", color: "var(--bg-color)" }}
                   role="button"
                   aria-label="Ver lista de seguidores"
                 >
@@ -187,12 +188,12 @@ export default function CreatorDashboard() {
 function CreatorMetric({ icon, label, value }: { icon: ReactNode; label: string; value: string }) {
   return (
     <Flex align="center" gap={3} minW="160px">
-      <Box color="brand.300">{icon}</Box>
+      <Box color="inherit">{icon}</Box>
       <Box>
-        <Text color="var(--text-muted)" fontSize="sm">
+        <Text color="inherit" fontSize="sm" opacity={0.8}>
           {label}
         </Text>
-        <Text fontWeight="700">{value}</Text>
+        <Text fontWeight="700" color="inherit">{value}</Text>
       </Box>
     </Flex>
   );
