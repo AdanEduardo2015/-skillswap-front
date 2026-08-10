@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Flex, Heading, Image, Spinner, Text } from "@chakra-ui/react";
 import { api } from "../services/api";
@@ -44,6 +44,12 @@ function CreatePublication() {
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
   const [isSendingForm, setIsSendingForm] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    if (!isLoadingCategories && categories.length > 0 && !categoryId) {
+      setCategoryId(categories[0].id);
+    }
+  }, [isLoadingCategories, categories, categoryId, setCategoryId]);
 
   if (isBannedUser) {
     return (

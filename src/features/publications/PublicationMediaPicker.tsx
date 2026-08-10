@@ -138,7 +138,11 @@ export default function PublicationMediaPicker({
             color="var(--bg-color)"
             border="1px solid var(--card-border)"
             _hover={{ opacity: 0.8 }}
-            onClick={() => onVideoChange(null)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onVideoChange(null);
+            }}
           >
             <FaTimes />
           </AppIconButton>
