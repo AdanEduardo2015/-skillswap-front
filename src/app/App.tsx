@@ -5,6 +5,7 @@ import NetworkLoader from "../components/NetworkLoader";
 import { useNotificationPolling } from "../components/hooks/useNotificationPolling";
 import RouterSideEffects from "./router/RouterSideEffects";
 import { getRouteLayoutState, type RouteLayoutState } from "./router/routeLayout";
+import ErrorBoundary from "../components/ErrorBoundary";
 
 interface AppSideEffectsProps {
   onLayoutChange: (state: RouteLayoutState) => void;
@@ -20,11 +21,11 @@ export default function App() {
   const [pathsState, setPathsState] = useState(() => getRouteLayoutState(window.location.pathname));
 
   return (
-    <>
+    <ErrorBoundary>
       <AppSideEffects onLayoutChange={setPathsState} />
       <AppLinkPrompt />
       <NetworkLoader />
       <RootLayout pathsState={pathsState} />
-    </>
+    </ErrorBoundary>
   );
 }

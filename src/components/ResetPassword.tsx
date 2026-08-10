@@ -81,7 +81,9 @@ function ResetPassword() {
       setConfirmPassword("");
       setConfirmationCode("");
       setIsValidPassword(null);
-      navigate("/login");
+      setTimeout(() => {
+        navigate("/login");
+      }, 1000);
     } catch (error: unknown) {
       const errorName = getErrorName(error);
 
@@ -144,7 +146,16 @@ function ResetPassword() {
       <Heading as="h1" size="4xl" color="white" mb={4}>
         Restablecer contraseña
       </Heading>
-      <Heading as="h3" size="md" color="yellow.400" textAlign="center" mb={4}>
+      <Heading
+        key={requestMessage}
+        as="h3"
+        size="md"
+        color="yellow.400"
+        textAlign="center"
+        mb={4}
+        className="notranslate"
+        translate="no"
+      >
         {requestMessage}
       </Heading>
 
