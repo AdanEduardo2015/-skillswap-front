@@ -166,17 +166,15 @@ export default function PublicationFormFields({
                 key={`${tag}-${idx}`}
                 align="center"
                 gap={1.5}
-                bg="var(--card-border)"
-                color="var(--text-color)"
+                bg="var(--text-color)"
+                color="var(--bg-color)"
                 px={3}
                 py={1}
                 borderRadius="full"
                 fontSize="xs"
-                fontWeight="600"
-                border="1px solid var(--modal-border)"
-                boxShadow="xs"
+                fontWeight="bold"
               >
-                <Text color="var(--nav-active)">#{tag}</Text>
+                <Text>#{tag}</Text>
                 <chakra.button
                   type="button"
                   onClick={() => removeTag(idx)}
@@ -187,8 +185,8 @@ export default function PublicationFormFields({
                   h="16px"
                   borderRadius="full"
                   bg="transparent"
-                  color="var(--text-muted)"
-                  _hover={{ color: "red.400" }}
+                  color="inherit"
+                  _hover={{ opacity: 0.7 }}
                   aria-label={`Eliminar etiqueta ${tag}`}
                   cursor="pointer"
                 >
