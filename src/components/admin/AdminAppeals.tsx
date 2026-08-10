@@ -253,9 +253,9 @@ export default function AdminAppeals() {
           mb={4}
           p={3}
           borderRadius="panel"
-          bg={isFeedbackError ? "rgba(239, 68, 68, 0.15)" : "rgba(34, 197, 94, 0.15)"}
-          color={isFeedbackError ? "red.400" : "green.300"}
-          border={`1px solid ${isFeedbackError ? "#ef4444" : "#22c55e"}`}
+          bg="var(--surface-muted)"
+          color="var(--text-color)"
+          border="1px solid var(--card-border)"
         >
           <Text fontWeight="medium">{feedback}</Text>
         </Box>
@@ -438,7 +438,7 @@ function AppealCardItem({
           <Text fontWeight="bold" color="var(--text-muted)" w="160px">
             Motivo de la sanción:
           </Text>
-          <Text fontWeight="semibold" color="red.400">
+          <Text fontWeight="semibold" color="var(--text-color)">
             {appeal.sanctionReason}
           </Text>
         </Flex>
@@ -528,9 +528,9 @@ function AppealCardItem({
             onClick={onKeepSanction}
             disabled={isProcessing}
           >
-            <Flex align="center" gap={2} color="red.400">
+            <Flex align="center" gap={2} color="inherit">
               <FaTimes />
-              <Text color="red.400">Mantener sanción</Text>
+              <Text color="inherit">Mantener sanción</Text>
             </Flex>
           </AppButton>
 

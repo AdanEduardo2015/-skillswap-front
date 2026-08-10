@@ -264,7 +264,7 @@ function UserProfile() {
 
   if (status.notFound) {
     return (
-      <Heading textAlign="center" color="red.500" fontWeight="bold" fontSize="6xl" mt={5}>
+      <Heading textAlign="center" color="var(--text-color)" fontWeight="bold" fontSize="6xl" mt={5}>
         Usuario no encontrado
       </Heading>
     );
@@ -283,12 +283,12 @@ function UserProfile() {
                   <Box
                     key={sanction.id}
                     bg="var(--surface-muted)"
-                    border="1px solid #f59e0b"
+                    border="1px solid var(--card-border)"
                     borderRadius="panel"
                     p={4}
                     color="var(--text-color)"
                   >
-                    <Heading as="h4" size="md" color="yellow.400" mb={1}>
+                    <Heading as="h4" size="md" color="var(--text-color)" mb={1}>
                       ⚠️ Advertencia de Cuenta
                     </Heading>
                     <Text fontSize="sm">
@@ -304,12 +304,12 @@ function UserProfile() {
                   <Box
                     key={sanction.id}
                     bg="var(--surface-muted)"
-                    border="1px solid #ef4444"
+                    border="1px solid var(--card-border)"
                     borderRadius="panel"
                     p={4}
                     color="var(--text-color)"
                   >
-                    <Heading as="h4" size="md" color="red.400" mb={1}>
+                    <Heading as="h4" size="md" color="var(--text-color)" mb={1}>
                       🚫 Baneo Temporal
                     </Heading>
                     <Text fontSize="sm" mb={1}>
@@ -333,12 +333,12 @@ function UserProfile() {
                   <Box
                     key={sanction.id}
                     bg="var(--surface-muted)"
-                    border="2px solid #ef4444"
+                    border="2px solid var(--card-border)"
                     borderRadius="panel"
                     p={4}
                     color="var(--text-color)"
                   >
-                    <Heading as="h4" size="md" color="red.500" mb={1}>
+                    <Heading as="h4" size="md" color="var(--text-color)" mb={1}>
                       💀 Baneo Permanente
                     </Heading>
                     <Text fontSize="sm">
@@ -354,12 +354,12 @@ function UserProfile() {
                   <Box
                     key={sanction.id}
                     bg="var(--surface-muted)"
-                    border="1px solid #ef4444"
+                    border="1px solid var(--card-border)"
                     borderRadius="panel"
                     p={4}
                     color="var(--text-color)"
                   >
-                    <Heading as="h4" size="md" color="red.400" mb={1}>
+                    <Heading as="h4" size="md" color="var(--text-color)" mb={1}>
                       Restricción de Contenido
                     </Heading>
                     <Text fontSize="sm">

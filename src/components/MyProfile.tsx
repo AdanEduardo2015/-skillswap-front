@@ -227,21 +227,16 @@ export default function MyProfile() {
               const existingAppeal = appeals.find((a) => a.sanctionId === sanction.id);
 
               let sanctionTitle = "🚫 Sanción de Cuenta";
-              let borderColor = "#ef4444";
+              let borderColor = "var(--card-border)";
               let bgColor = "var(--surface-muted)";
-              let titleColor = "red.400";
+              let titleColor = "var(--text-color)";
 
               if (sanction.type === "warning") {
                 sanctionTitle = "⚠️ Advertencia de Cuenta";
-                borderColor = "#f59e0b";
-                bgColor = "var(--surface-muted)";
-                titleColor = "yellow.400";
               } else if (sanction.type === "temporary_ban") {
                 sanctionTitle = "🚫 Baneo Temporal";
               } else if (sanction.type === "permanent_ban") {
                 sanctionTitle = "💀 Baneo Permanente";
-                bgColor = "var(--surface-muted)";
-                titleColor = "red.500";
               } else if (sanction.type === "content_restriction") {
                 sanctionTitle = "Restricción de Contenido";
               }
@@ -266,16 +261,8 @@ export default function MyProfile() {
                         borderRadius="full"
                         fontSize="xs"
                         fontWeight="bold"
-                        bg={
-                          existingAppeal.status === "pending"
-                            ? "blue.600"
-                            : existingAppeal.status === "in_review"
-                            ? "yellow.600"
-                            : existingAppeal.status === "accepted"
-                            ? "green.600"
-                            : "red.700"
-                        }
-                        color="white"
+                        bg="var(--text-color)"
+                        color="var(--bg-color)"
                       >
                         {existingAppeal.status === "pending" && "Apelación enviada (Pendiente)"}
                         {existingAppeal.status === "in_review" && "Apelación en revisión"}
@@ -308,15 +295,7 @@ export default function MyProfile() {
                       mt={2}
                       mb={2}
                       borderLeft="3px solid"
-                      borderColor={
-                        existingAppeal.status === "pending"
-                          ? "#3b82f6"
-                          : existingAppeal.status === "in_review"
-                          ? "#eab308"
-                          : existingAppeal.status === "accepted"
-                          ? "#22c55e"
-                          : "#ef4444"
-                      }
+                      borderColor="var(--text-color)"
                     >
                       <Text fontSize="xs" fontWeight="bold" color="var(--text-muted)" mb={1}>
                         Detalles de tu apelación:
