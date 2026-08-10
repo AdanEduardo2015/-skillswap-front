@@ -5,7 +5,7 @@ import { Box, Flex, Heading, Image, Spinner, Text, Checkbox } from "@chakra-ui/r
 import { api } from "../services/api";
 import { useUserData } from "../utils/UserStore";
 import { AppButton, TextareaField, TextField } from "../shared/ui";
-import { useSpecialties } from "../hooks/useSpecialties";
+
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -37,8 +37,7 @@ function SignUp() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [profileValues, setProfileValues] = useState<SignUpProfileValues>(emptyProfileValues);
-  const { specialties } = useSpecialties();
-  const [showSpecialties, setShowSpecialties] = useState(false);
+
 
   const {
     setEmail: setGlobalEmail,
@@ -366,64 +365,12 @@ function SignUp() {
             onChange={(event) => updateProfileField("bio", event.target.value)}
           />
 
-          <Box pos="relative" w="100%" mb={4}>
-            <Text color="white" mb={1} fontSize="sm">
-              Area de especialidad (Opcional)
-            </Text>
-            <Box pos="relative">
-              <input
-                type="text"
-                placeholder="Buscar especialidad..."
-                value={profileValues.specialty}
-                onChange={(e) => updateProfileField("specialty", e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "0.5rem",
-                  borderRadius: "0.375rem",
-                  backgroundColor: "var(--surface-muted)",
-                  color: "white",
-                  border: "1px solid var(--border-color, #4A5568)",
-                  outline: "none"
-                }}
-                onFocus={() => setShowSpecialties(true)}
-                onBlur={() => setTimeout(() => setShowSpecialties(false), 200)}
-              />
-              {showSpecialties && specialties.length > 0 && (
-                <Box
-                  pos="absolute"
-                  top="100%"
-                  left={0}
-                  right={0}
-                  bg="gray.800"
-                  color="white"
-                  mt={1}
-                  borderRadius="md"
-                  maxH="200px"
-                  overflowY="auto"
-                  zIndex={10}
-                  boxShadow="lg"
-                  border="1px solid #4A5568"
-                >
-                  {specialties
-                    .filter((s) => s.name.toLowerCase().includes(profileValues.specialty.toLowerCase()))
-                    .map((s) => (
-                      <Box
-                        key={s.id}
-                        p={2}
-                        _hover={{ bg: "gray.700" }}
-                        cursor="pointer"
-                        onClick={() => {
-                          updateProfileField("specialty", s.name);
-                          setShowSpecialties(false);
-                        }}
-                      >
-                        {s.name}
-                      </Box>
-                    ))}
-                </Box>
-              )}
-            </Box>
-          </Box>
+          <TextField
+            label="Área de especialidad (Opcional)"
+            placeholder="Ej. Desarrollo Web, Diseño Gráfico, Fotografía..."
+            value={profileValues.specialty}
+            onChange={(e) => updateProfileField("specialty", e.target.value)}
+          />
 
           <AppButton w="100%" my={4} type="submit" disabled={Boolean(isSendingForm)}>
             {!isSendingForm ? (
