@@ -413,8 +413,18 @@ body .app-navbar.app-navbar--desktop {
   flex: 0 0 auto;
 }
 
-.theme-toggle:hover {
+.theme-toggle:hover,
+.theme-toggle:focus,
+.theme-toggle:active {
   background-color: var(--ghost-hover-bg);
+  color: var(--bg-color) !important;
+}
+
+.theme-toggle:hover svg,
+.theme-toggle:focus svg,
+.theme-toggle:active svg {
+  color: var(--bg-color) !important;
+  fill: var(--bg-color) !important;
 }
 
 .theme-toggle:focus-visible {
