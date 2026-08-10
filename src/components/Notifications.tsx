@@ -18,6 +18,7 @@ import type { IconType } from "react-icons";
 import { useNotificationStore } from "../utils/NotificationStore";
 import { getToken } from "../utils/GlobalVariables";
 import { SkeletonNotification } from "./Skeletons";
+import { AppModal } from "../shared/ui";
 import type { Notification } from "../types";
 import { useAuthSession } from "../app/auth/AuthSessionContext";
 
@@ -32,7 +33,7 @@ const isRecoverableAuthError = (error: unknown) => {
 };
 
 type NotificationKind =
-  "report" | "like" | "dislike" | "comment" | "saved" | "sanction" | "rating" | "follower" | "default";
+  "report" | "like" | "dislike" | "comment" | "saved" | "sanction" | "rating" | "follower" | "appeal" | "default";
 
 interface NotificationVisual {
   Icon: IconType;
@@ -47,6 +48,7 @@ const notificationVisuals: Record<NotificationKind, NotificationVisual> = {
   dislike: { Icon: FaThumbsDown, label: "Dislike", color: "#64748b", bg: "rgba(100, 116, 139, 0.18)" },
   comment: { Icon: FaRegComment, label: "Comentario", color: "#35c27f", bg: "rgba(53, 194, 127, 0.16)" },
   saved: { Icon: FaBookmark, label: "Guardado", color: "#8b5cf6", bg: "rgba(139, 92, 246, 0.16)" },
+  appeal: { Icon: FaGavel, label: "Apelación", color: "#f59e0b", bg: "rgba(245, 158, 11, 0.16)" },
   sanction: { Icon: FaGavel, label: "Sancion", color: "#ef4444", bg: "rgba(239, 68, 68, 0.16)" },
   rating: { Icon: FaStar, label: "Calificacion", color: "#eab308", bg: "rgba(234, 179, 8, 0.18)" },
   follower: { Icon: FaUser, label: "Seguidor", color: "#10b981", bg: "rgba(16, 185, 129, 0.16)" },
@@ -69,6 +71,7 @@ const getNotificationKind = (notification: Notification): NotificationKind => {
   if (text.includes("like") || text.includes("me gusta")) return "like";
   if (text.includes("comment") || text.includes("comentario")) return "comment";
   if (text.includes("saved") || text.includes("guardado") || text.includes("favorito")) return "saved";
+  if (text.includes("apelacion") || text.includes("appeal") || text.includes("apelación")) return "appeal";
   if (
     text.includes("sanction") ||
     text.includes("sancion") ||
@@ -119,6 +122,7 @@ function Notifications() {
     notificationsEnabled: true,
   });
   const [isSavingSettings, setIsSavingSettings] = useState<boolean>(false);
+  const [selectedAppealNotification, setSelectedAppealNotification] = useState<Notification | null>(null);
 
   const setHasUnreadNotifications = useNotificationStore((state) => state.setHasUnreadNotifications);
   const { isAuthenticated, isLoading: isSessionLoading, user } = useAuthSession();
@@ -244,6 +248,12 @@ function Notifications() {
     void leerNotificacion(notification.id);
     
     const kind = getNotificationKind(notification);
+    
+    if (kind === "appeal") {
+      setSelectedAppealNotification(notification);
+      return;
+    }
+    
     if (kind === "report") {
       if (isAdmin) {
         navigate("/admin/reports");
@@ -512,6 +522,35 @@ function Notifications() {
           </Box>
         </Flex>
       )}
+      <AppModal
+        isOpen={Boolean(selectedAppealNotification)}
+        onClose={() => setSelectedAppealNotification(null)}
+        title="Detalle de Apelación Rechazada"
+        size="md"
+      >
+        {selectedAppealNotification && (
+          <Box textAlign="left" color="var(--text-color)">
+            <Text mb={3} fontWeight="bold">Motivo del rechazo:</Text>
+            <Text mb={4} p={3} bg="var(--ghost-hover-bg)" color="var(--bg-color)" borderRadius="md">
+              {selectedAppealNotification.motivo || selectedAppealNotification.reason || selectedAppealNotification.message}
+            </Text>
+            
+            {selectedAppealNotification.publicationId && (
+              <Text fontSize="sm" color="var(--text-subtle)" mb={2}>
+                <strong>ID de Publicación:</strong> {selectedAppealNotification.publicationId}
+              </Text>
+            )}
+            
+            <Text fontSize="sm" color="var(--text-subtle)">
+              <strong>Fecha de resolución:</strong> {formatNotificationDate(selectedAppealNotification.createdAt)}
+            </Text>
+
+            <Button mt={6} w="100%" bg="var(--text-color)" color="var(--bg-color)" _hover={{ opacity: 0.8 }} onClick={() => setSelectedAppealNotification(null)}>
+              Cerrar
+            </Button>
+          </Box>
+        )}
+      </AppModal>
     </Flex>
   );
 }

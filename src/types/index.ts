@@ -256,6 +256,8 @@ export interface NotificationsSettings {
 export interface Notification {
   id: string;
   message: string;
+  reason?: string;
+  motivo?: string;
   publicationId?: string;
   targetType?: NotificationTargetType;
   targetId?: string;
