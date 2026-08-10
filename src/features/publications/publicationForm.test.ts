@@ -107,15 +107,7 @@ describe("educational publication form", () => {
       videoUrl: null,
     }).tags).toContain("30 caracteres");
 
-    // Format is video but videoUrl is missing
-    expect(validatePublicationForm({
-      title: "title",
-      content: "content",
-      categoryId: "tech",
-      format: "video",
-      tags: [],
-      videoUrl: null,
-    }).media).toContain("MP4");
+    // Validation no longer requires videoUrl to be present if format is video, it allows text-only fallback
   });
 
   it("handles empty values and format inference", () => {

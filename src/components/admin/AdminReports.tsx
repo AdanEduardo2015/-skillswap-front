@@ -67,11 +67,32 @@ export default function AdminReports() {
 
     try {
       const result = await api.admin.listReports(status);
-      setReports(result.reports || []);
-      setNextToken(result.nextToken);
-    } catch {
+      const fetched = result.reports || [];
+
+      if (showLoader) {
+        setReports(fetched);
+        setNextToken(result.nextToken);
+      } else {
+        if (reports.length <= 20) {
+          setReports(fetched);
+          setNextToken(result.nextToken);
+        } else {
+          setReports((current) => {
+            const currentIds = new Set(current.map(c => c.id));
+            const newItems = fetched.filter(f => !currentIds.has(f.id));
+            const updatedCurrent = current.map(c => {
+               const updated = fetched.find(f => f.id === c.id);
+               return updated || c;
+            });
+            return [...newItems, ...updatedCurrent];
+          });
+        }
+      }
+    } catch (error: unknown) {
       setReports([]);
       setNextToken(null);
+      setIsFeedbackError(true);
+      setFeedbackMessage(error instanceof Error ? error.message : "Error al cargar los reportes.");
     } finally {
       if (showLoader) setIsLoading(false);
     }

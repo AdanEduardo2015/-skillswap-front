@@ -72,11 +72,32 @@ export default function AdminSanctions() {
 
     try {
       const result = await api.admin.listSanctions(status, 20, null, userEmailFilter.trim() || undefined);
-      setSanctions(result.sanctions || []);
-      setNextToken(result.nextToken);
-    } catch {
+      const fetched = result.sanctions || [];
+
+      if (showLoader) {
+        setSanctions(fetched);
+        setNextToken(result.nextToken);
+      } else {
+        if (sanctions.length <= 20) {
+          setSanctions(fetched);
+          setNextToken(result.nextToken);
+        } else {
+          setSanctions((current) => {
+            const currentIds = new Set(current.map(c => c.id));
+            const newItems = fetched.filter(f => !currentIds.has(f.id));
+            const updatedCurrent = current.map(c => {
+               const updated = fetched.find(f => f.id === c.id);
+               return updated || c;
+            });
+            return [...newItems, ...updatedCurrent];
+          });
+        }
+      }
+    } catch (error: unknown) {
       setSanctions([]);
       setNextToken(null);
+      setIsFeedbackError(true);
+      setFeedback(error instanceof Error ? error.message : "Error al cargar las sanciones.");
     } finally {
       if (showLoader) setIsLoading(false);
     }

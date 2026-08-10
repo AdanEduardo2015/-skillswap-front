@@ -177,8 +177,21 @@ function Notifications() {
       }
 
       const res = await api.notifications.list();
-      const data = res.notifications || [];
-      setNotificaciones(data);
+      const fetched = res.notifications || [];
+
+      if (showLoader) {
+        setNotificaciones(fetched);
+      } else {
+        setNotificaciones((current) => {
+          const currentIds = new Set(current.map(n => n.id));
+          const newItems = fetched.filter(n => !currentIds.has(n.id));
+          const updatedCurrent = current.map(c => {
+             const updated = fetched.find(n => n.id === c.id);
+             return updated || c;
+          });
+          return [...newItems, ...updatedCurrent];
+        });
+      }
     } catch (error: unknown) {
       if (isRecoverableAuthError(error)) {
         setNotificaciones([]);

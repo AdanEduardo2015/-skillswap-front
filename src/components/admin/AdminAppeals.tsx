@@ -84,12 +84,32 @@ export default function AdminAppeals() {
 
     try {
       const result = await api.admin.listAppeals(statusFilter, 20, null);
-      const enriched = await enrichAppealsWithPublications(result.appeals || []);
-      setAppeals(enriched);
-      setNextToken(result.nextToken);
-    } catch {
+      const fetched = await enrichAppealsWithPublications(result.appeals || []);
+
+      if (showLoader) {
+        setAppeals(fetched);
+        setNextToken(result.nextToken);
+      } else {
+        if (appeals.length <= 20) {
+          setAppeals(fetched);
+          setNextToken(result.nextToken);
+        } else {
+          setAppeals((current) => {
+            const currentIds = new Set(current.map(c => c.id));
+            const newItems = fetched.filter(f => !currentIds.has(f.id));
+            const updatedCurrent = current.map(c => {
+               const updated = fetched.find(f => f.id === c.id);
+               return updated || c;
+            });
+            return [...newItems, ...updatedCurrent];
+          });
+        }
+      }
+    } catch (error: unknown) {
       setAppeals([]);
       setNextToken(null);
+      setIsFeedbackError(true);
+      setFeedback(error instanceof Error ? error.message : "Error al cargar las apelaciones.");
     } finally {
       if (showLoader) setIsLoading(false);
     }
