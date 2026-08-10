@@ -5,7 +5,7 @@ import { useSearchParamsGlobal } from "../utils/GlobalVariables";
 import PublicationCard from "./PublicationCard";
 import ImageModal from "./modals/ImageModal";
 import PublicationComments from "./PublicationComments";
-import { Flex, Box, Heading, Text, Collapse } from "@chakra-ui/react";
+import { Flex, Box, Heading, Text, Collapsible } from "@chakra-ui/react";
 import { SkeletonPublicationCard } from "./Skeletons";
 import type { Publication } from "../types";
 import { useAuthSession } from "../app/auth/AuthSessionContext";
@@ -179,22 +179,24 @@ function ViewPublication() {
         onClickComent={() => setShowCommentInput((prev) => !prev)}
       />
 
-      <Collapse in={showCommentInput} animateOpacity>
-        <Box as="hr" borderColor="var(--card-border)" mt={3} mb={0} />
-        <Heading as="h6" size="sm" color="var(--text-color)" my={2}>
-          Comentarios
-        </Heading>
-        <Box as="hr" borderColor="var(--card-border)" mb={3} mt={0} />
+      <Collapsible.Root open={showCommentInput}>
+        <Collapsible.Content>
+          <Box as="hr" borderColor="var(--card-border)" mt={3} mb={0} />
+          <Heading as="h6" size="sm" color="var(--text-color)" my={2}>
+            Comentarios
+          </Heading>
+          <Box as="hr" borderColor="var(--card-border)" mb={3} mt={0} />
 
-        <PublicationComments
-          publication={publication}
-          showInput={showCommentInput}
-          setShowInput={setShowCommentInput}
-          onImageClick={setImagenSeleccionada}
-          onCommentAdded={handleCommentAdded}
-          onCommentDeleted={handleCommentDeleted}
-        />
-      </Collapse>
+          <PublicationComments
+            publication={publication}
+            showInput={showCommentInput}
+            setShowInput={setShowCommentInput}
+            onImageClick={setImagenSeleccionada}
+            onCommentAdded={handleCommentAdded}
+            onCommentDeleted={handleCommentDeleted}
+          />
+        </Collapsible.Content>
+      </Collapsible.Root>
 
       <ImageModal image={imagenSeleccionada} onClose={() => setImagenSeleccionada(null)} />
     </Flex>
