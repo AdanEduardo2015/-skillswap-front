@@ -255,7 +255,7 @@ export default function AdminAppeals() {
           borderRadius="panel"
           bg="var(--surface-muted)"
           color="var(--text-color)"
-          border="1px solid var(--card-border)"
+          border={isFeedbackError ? "2px solid var(--text-color)" : "1px solid var(--card-border)"}
         >
           <Text fontWeight="medium">{feedback}</Text>
         </Box>
