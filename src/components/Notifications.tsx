@@ -419,15 +419,17 @@ function Notifications() {
                 )}
 
                 <Box position="relative" flex="0 0 auto" ml={isUnread ? 1 : 0}>
-                  <Image
-                    src={noti.user?.profilePicUrl ?? noti.user?.profilePicture ?? "/Profile.svg"}
-                    alt={noti.user?.username ?? "Usuario"}
-                    userSelect="none"
-                    borderRadius="full"
-                    boxSize={{ base: "2.75rem", md: "3rem" }}
-                    objectFit="cover"
-                    bg="var(--surface-muted)"
-                  />
+                  <Box bg="var(--surface-muted)" borderRadius="full" boxSize={{ base: "2.75rem", md: "3rem" }} overflow="hidden">
+                    <Image
+                      src={noti.user?.profilePicUrl ?? noti.user?.profilePicture ?? "/Profile.svg"}
+                      alt={noti.user?.username ?? "Usuario"}
+                      userSelect="none"
+                      borderRadius="full"
+                      boxSize="100%"
+                      objectFit="cover"
+                      bg="transparent"
+                    />
+                  </Box>
                   <Flex
                     position="absolute"
                     right="-3px"
