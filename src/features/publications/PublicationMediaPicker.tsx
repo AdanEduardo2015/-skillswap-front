@@ -130,11 +130,14 @@ export default function PublicationMediaPicker({
           />
           <AppIconButton
             label="Quitar video"
-            tone="danger"
             size="sm"
             pos="absolute"
             top={2}
             right={2}
+            bg="var(--text-color)"
+            color="var(--bg-color)"
+            border="1px solid var(--card-border)"
+            _hover={{ opacity: 0.8 }}
             onClick={() => onVideoChange(null)}
           >
             <FaTimes />

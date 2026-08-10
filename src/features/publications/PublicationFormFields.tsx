@@ -251,7 +251,7 @@ export default function PublicationFormFields({
           </Text>
         ) : (
           <Text fontSize="xs" color="var(--text-muted)" mt={1.5}>
-            Presiona <chakra.kbd px={1.5} py={0.5} borderRadius="md" bg="var(--card-border)" fontSize="10px">Enter</chakra.kbd>, <chakra.kbd px={1.5} py={0.5} borderRadius="md" bg="var(--card-border)" fontSize="10px">,</chakra.kbd> o espacio para agregar cada etiqueta.
+            Presiona <chakra.kbd px={1.5} py={0.5} borderRadius="md" bg="transparent" border="1px solid var(--text-color)" color="var(--text-color)" fontSize="10px">Enter</chakra.kbd>, <chakra.kbd px={1.5} py={0.5} borderRadius="md" bg="transparent" border="1px solid var(--text-color)" color="var(--text-color)" fontSize="10px">,</chakra.kbd> o espacio para agregar cada etiqueta.
           </Text>
         )}
       </Box>

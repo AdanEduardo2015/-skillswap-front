@@ -225,9 +225,8 @@ export const validatePublicationForm = (values: PublicationFormValues): Publicat
     errors.tags = `Cada etiqueta debe tener maximo ${PUBLICATION_MAX_TAG_LENGTH} caracteres.`;
   }
 
-  if (values.format === "video" && !values.videoUrl) {
-    errors.media = "El formato video requiere un video MP4.";
-  }
+  // Se removio la validacion estricta de media para evitar bloqueos falsos
+  // si el usuario decide quitar el video y publicar solo texto.
 
   return errors;
 };
@@ -236,7 +235,7 @@ export const buildPublicationPayload = (values: PublicationFormValues): CreatePu
   title: values.title.trim(),
   content: values.content.trim(),
   categoryId: values.categoryId,
-  format: values.format,
+  format: values.videoUrl ? "video" : "article",
   tags: values.tags,
   videoUrl: values.videoUrl,
 });
