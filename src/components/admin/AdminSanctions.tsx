@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Badge, Box, Flex, Heading, Separator, Spinner, Text, VStack, chakra } from "@chakra-ui/react";
-import { FaBan, FaCalendarAlt, FaCheck, FaExclamationTriangle, FaGavel, FaSync, FaTimes, FaUnlock, FaUserSlash } from "react-icons/fa";
+import { FaGavel, FaSync, FaUnlock } from "react-icons/fa";
 import { api } from "../../services/api";
 import type { Sanction, SanctionStatus, SanctionType } from "../../types";
 import { usePolling } from "../../hooks/usePolling";
