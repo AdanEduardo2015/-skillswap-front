@@ -4,6 +4,8 @@ import { confirmSignIn, fetchAuthSession, signOut } from "aws-amplify/auth";
 import { useUserData } from "../utils/UserStore";
 import { useNavigate } from "react-router-dom";
 import { Box, Heading, Text, Input, Button, Flex, Spinner } from "@chakra-ui/react";
+import { useAuthSession } from "../app/auth/AuthSessionContext";
+import { clearAuthTokenCache } from "../utils/GlobalVariables";
 
 const getErrorName = (error: unknown) =>
   error && typeof error === "object" && "name" in error ? String(error.name) : "";
@@ -14,6 +16,7 @@ function VerifyMFA() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [error, setError] = useState("");
   const { setEmail: setGlobalEmail, setName: setGlobalName, setProfilePictureUrl } = useUserData();
+  const authSession = useAuthSession();
 
   const handleVerifyCode = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -37,6 +40,9 @@ function VerifyMFA() {
         setGlobalName((claims.name as string) ?? "");
         setProfilePictureUrl(null);
       }
+
+      clearAuthTokenCache();
+      await authSession.refresh({ forceRefresh: true });
 
       navigate("/");
     } catch (error: unknown) {

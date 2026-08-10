@@ -117,8 +117,9 @@ function ResetPassword() {
   };
 
   return (
-    <Box
-      className={isSendingForm ? "disabled-form" : ""}
+    <form onSubmit={(e) => { e.preventDefault(); if (step === 1) { if (confirmationCode.trim()) { setStep(2); setRequestMessage(""); } else { setRequestMessage("Ingrese el código de verificación."); } } else { void handleResetPassword(); } }}>
+      <Box
+        className={isSendingForm ? "disabled-form" : ""}
       userSelect="none"
       display="flex"
       flexDirection="column"
@@ -171,14 +172,7 @@ function ResetPassword() {
             w="100%"
             my={4}
             _hover={{ bg: "var(--button-hover-bg)" }}
-            onClick={() => {
-              if (confirmationCode.trim()) {
-                setStep(2);
-                setRequestMessage("");
-              } else {
-                setRequestMessage("Ingrese el código de verificación.");
-              }
-            }}
+            type="submit"
             borderRadius="1rem"
           >
             Continuar
@@ -312,7 +306,7 @@ function ResetPassword() {
           w="100%"
           my={4}
           _hover={{ bg: "var(--button-hover-bg)" }}
-          onClick={handleResetPassword}
+          type="submit"
           borderRadius="1rem"
         >
           {!isSendingForm ? (
@@ -338,6 +332,7 @@ function ResetPassword() {
       </Box>
       )}
     </Box>
+    </form>
   );
 }
 

@@ -101,99 +101,101 @@ function ConfirmSignUp() {
   }, [location.state, Correo_electronico, handleResendCode]);
 
   return (
-    <Box
-      className={`${isSendingForm ? "disabled-form" : ""}`}
-      userSelect="none"
-      display="flex"
-      flexDirection="column"
-      justifyContent="center"
-      alignItems="center"
-      color="white"
-      mt={10}
-    >
-      <Flex w={{ base: "90%", md: "50%" }} mb={2}>
-        <Text
-          color="var(--text-muted)"
-          cursor="pointer"
-          fontWeight="600"
-          onClick={() => navigate("/login")}
-          _hover={{ color: "var(--text-color)" }}
-          transition="color 0.2s"
-        >
-          ← Volver al inicio de sesión
-        </Text>
-      </Flex>
-
-      <Heading as="h1" size="4xl" color="white" mb={4}>
-        Verificar código
-      </Heading>
-
-      {requestMessage && (
-        <Heading
-          as="h3"
-          size="md"
-          textAlign="center"
-          mb={4}
-          color={isValidCode === false ? "red.500" : "yellow.400"}
-        >
-          {requestMessage}
-        </Heading>
-      )}
-
-      <Box w={{ base: "90%", md: "50%" }} mx="auto" px={4}>
-        <Input
-          className="text-input"
-          w="100%"
-          mb={4}
-          type="text"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          placeholder="Ingresa tu código de 6 dígitos"
-          borderColor={isValidCode === false ? "red.500" : { base: "gray.300", _dark: "inherit" }}
-          bg="var(--input-bg)"
-          color="var(--input-text)"
-          _placeholder={{ color: "var(--input-placeholder)" }}
-          borderRadius="1rem"
-          _focus={{ border: "solid 0.05rem var(--input-focus-border)", boxShadow: "none", outline: "none" }}
-        />
-
-        <Button
-          bg="var(--button-bg)"
-          color="var(--button-text)"
-          w="100%"
-          my={4}
-          onClick={sendCode}
-          disabled={isSendingForm || isResending}
-          _hover={{ bg: "var(--button-hover-bg)" }}
-          borderRadius="1rem"
-        >
-          {!isSendingForm ? (
-            "Verificar código"
-          ) : (
-            <Flex justify="center" align="center">
-              <Text mr={3}>Verificando...</Text>
-              <Spinner size="sm" color="var(--button-text)" />
-            </Flex>
-          )}
-        </Button>
-
-        <Flex justify="center" mt={2}>
-          {isResending ? (
-            <Spinner size="sm" color="var(--text-color)" />
-          ) : (
-            <Text
-              color="var(--text-muted)"
-              fontSize="sm"
-              cursor="pointer"
-              _hover={{ color: "var(--text-color)", textDecoration: "underline" }}
-              onClick={handleResendCode}
-            >
-              ¿No recibiste el código? Reenviar código
-            </Text>
-          )}
+    <form onSubmit={(e) => { e.preventDefault(); void sendCode(); }}>
+      <Box
+        className={`${isSendingForm ? "disabled-form" : ""}`}
+        userSelect="none"
+        display="flex"
+        flexDirection="column"
+        justifyContent="center"
+        alignItems="center"
+        color="white"
+        mt={10}
+      >
+        <Flex w={{ base: "90%", md: "50%" }} mb={2}>
+          <Text
+            color="var(--text-muted)"
+            cursor="pointer"
+            fontWeight="600"
+            onClick={() => navigate("/login")}
+            _hover={{ color: "var(--text-color)" }}
+            transition="color 0.2s"
+          >
+            ← Volver al inicio de sesión
+          </Text>
         </Flex>
+
+        <Heading as="h1" size="4xl" color="white" mb={4}>
+          Verificar código
+        </Heading>
+
+        {requestMessage && (
+          <Heading
+            as="h3"
+            size="md"
+            textAlign="center"
+            mb={4}
+            color={isValidCode === false ? "red.500" : "yellow.400"}
+          >
+            {requestMessage}
+          </Heading>
+        )}
+
+        <Box w={{ base: "90%", md: "50%" }} mx="auto" px={4}>
+          <Input
+            className="text-input"
+            w="100%"
+            mb={4}
+            type="text"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="Ingresa tu código de 6 dígitos"
+            borderColor={isValidCode === false ? "red.500" : { base: "gray.300", _dark: "inherit" }}
+            bg="var(--input-bg)"
+            color="var(--input-text)"
+            _placeholder={{ color: "var(--input-placeholder)" }}
+            borderRadius="1rem"
+            _focus={{ border: "solid 0.05rem var(--input-focus-border)", boxShadow: "none", outline: "none" }}
+          />
+
+          <Button
+            bg="var(--button-bg)"
+            color="var(--button-text)"
+            w="100%"
+            my={4}
+            type="submit"
+            disabled={isSendingForm || isResending}
+            _hover={{ bg: "var(--button-hover-bg)" }}
+            borderRadius="1rem"
+          >
+            {!isSendingForm ? (
+              "Verificar código"
+            ) : (
+              <Flex justify="center" align="center">
+                <Text mr={3}>Verificando...</Text>
+                <Spinner size="sm" color="var(--button-text)" />
+              </Flex>
+            )}
+          </Button>
+
+          <Flex justify="center" mt={2}>
+            {isResending ? (
+              <Spinner size="sm" color="var(--text-color)" />
+            ) : (
+              <Text
+                color="var(--text-muted)"
+                fontSize="sm"
+                cursor="pointer"
+                _hover={{ color: "var(--text-color)", textDecoration: "underline" }}
+                onClick={handleResendCode}
+              >
+                ¿No recibiste el código? Reenviar código
+              </Text>
+            )}
+          </Flex>
+        </Box>
       </Box>
-    </Box>
+    </form>
   );
 }
 
