@@ -5,6 +5,7 @@ import { api } from "../../services/api";
 import type { Report, ReportStatus, ReportTargetType } from "../../types";
 import { AppButton, EmptyState } from "../../shared/ui";
 import ConfirmModal from "../modals/ConfirmModal";
+import { usePolling } from "../../hooks/usePolling";
 
 type ReviewStatus = Exclude<ReportStatus, "pending">;
 
@@ -57,26 +58,33 @@ export default function AdminReports() {
     return reports.filter((report) => report.status === status);
   }, [reports, status]);
 
-  useEffect(() => {
-    const loadReports = async () => {
+  const loadReports = async (showLoader = false) => {
+    if (showLoader) {
       setIsLoading(true);
       setFeedbackMessage("");
       setIsFeedbackError(false);
+    }
 
-      try {
-        const result = await api.admin.listReports(status);
-        setReports(result.reports || []);
-        setNextToken(result.nextToken);
-      } catch {
-        setReports([]);
-        setNextToken(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    try {
+      const result = await api.admin.listReports(status);
+      setReports(result.reports || []);
+      setNextToken(result.nextToken);
+    } catch {
+      setReports([]);
+      setNextToken(null);
+    } finally {
+      if (showLoader) setIsLoading(false);
+    }
+  };
 
-    void loadReports();
+  useEffect(() => {
+    void loadReports(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, reloadVersion]);
+
+  usePolling(() => {
+    void loadReports(false);
+  }, 10000, [status]);
 
   const loadMore = async () => {
     if (!nextToken || isLoadingMore) return;

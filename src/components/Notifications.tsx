@@ -21,6 +21,7 @@ import { SkeletonNotification } from "./Skeletons";
 import { AppModal } from "../shared/ui";
 import type { Notification } from "../types";
 import { useAuthSession } from "../app/auth/AuthSessionContext";
+import { usePolling } from "../hooks/usePolling";
 
 const isRecoverableAuthError = (error: unknown) => {
   if (!(error instanceof Error)) return false;
@@ -159,51 +160,44 @@ function Notifications() {
     setHasUnreadNotifications(hasUnread);
   }, [notificaciones, canLoadNotifications, setHasUnreadNotifications]);
 
-  useEffect(() => {
+  const fetchNotifications = async (showLoader = false) => {
     if (!canLoadNotifications) {
-      setIsLoading(false);
+      if (showLoader) setIsLoading(false);
       setNotificaciones([]);
       return;
     }
 
-    let isActive = true;
-    setIsLoading(true);
+    if (showLoader) setIsLoading(true);
 
-    const loadNotifications = async () => {
-      try {
-        const token = await getToken();
-        if (!token) {
-          if (isActive) {
-            setNotificaciones([]);
-          }
-          return;
-        }
-
-        const res = await api.notifications.list();
-        const data = res.notifications || [];
-        if (!isActive) return;
-
-        setNotificaciones(data);
-      } catch (error: unknown) {
-        if (isRecoverableAuthError(error)) {
-          if (isActive) {
-            setNotificaciones([]);
-          }
-          return;
-        }
-
-        console.error("Error loading notifications:", error);
-      } finally {
-        if (isActive) setIsLoading(false);
+    try {
+      const token = await getToken();
+      if (!token) {
+        setNotificaciones([]);
+        return;
       }
-    };
 
-    void loadNotifications();
+      const res = await api.notifications.list();
+      const data = res.notifications || [];
+      setNotificaciones(data);
+    } catch (error: unknown) {
+      if (isRecoverableAuthError(error)) {
+        setNotificaciones([]);
+        return;
+      }
+      console.error("Error loading notifications:", error);
+    } finally {
+      if (showLoader) setIsLoading(false);
+    }
+  };
 
-    return () => {
-      isActive = false;
-    };
+  useEffect(() => {
+    void fetchNotifications(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canLoadNotifications]);
+
+  usePolling(() => {
+    void fetchNotifications(false);
+  }, canLoadNotifications ? 10000 : null, [canLoadNotifications]);
 
   const handleToggleNotificationsEnabled = async (enabled: boolean) => {
     setIsSavingSettings(true);

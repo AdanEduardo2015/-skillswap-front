@@ -3,6 +3,7 @@ import { Badge, Box, Flex, Heading, Separator, Spinner, Text, VStack, chakra } f
 import { FaBalanceScale, FaCheck, FaQuestionCircle, FaSync, FaTimes } from "react-icons/fa";
 import { api } from "../../services/api";
 import type { Appeal, AppealStatus } from "../../types";
+import { usePolling } from "../../hooks/usePolling";
 import { AppButton, EmptyState, TextareaField } from "../../shared/ui";
 
 const statusFilterOptions: Array<{ value: string; label: string; colorPalette: string }> = [
@@ -74,27 +75,34 @@ export default function AdminAppeals() {
     );
   };
 
-  useEffect(() => {
-    const loadAppeals = async () => {
+  const loadAppeals = async (showLoader = false) => {
+    if (showLoader) {
       setIsLoading(true);
       setFeedback("");
       setIsFeedbackError(false);
+    }
 
-      try {
-        const result = await api.admin.listAppeals(statusFilter, 20, null);
-        const enriched = await enrichAppealsWithPublications(result.appeals || []);
-        setAppeals(enriched);
-        setNextToken(result.nextToken);
-      } catch {
-        setAppeals([]);
-        setNextToken(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    try {
+      const result = await api.admin.listAppeals(statusFilter, 20, null);
+      const enriched = await enrichAppealsWithPublications(result.appeals || []);
+      setAppeals(enriched);
+      setNextToken(result.nextToken);
+    } catch {
+      setAppeals([]);
+      setNextToken(null);
+    } finally {
+      if (showLoader) setIsLoading(false);
+    }
+  };
 
-    void loadAppeals();
+  useEffect(() => {
+    void loadAppeals(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter, reloadVersion]);
+
+  usePolling(() => {
+    void loadAppeals(false);
+  }, 10000, [statusFilter]);
 
   const loadMore = async () => {
     if (!nextToken) return;
