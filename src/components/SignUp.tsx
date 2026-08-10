@@ -5,6 +5,7 @@ import { Box, Flex, Heading, Image, Spinner, Text, Checkbox } from "@chakra-ui/r
 import { api } from "../services/api";
 import { useUserData } from "../utils/UserStore";
 import { AppButton, TextareaField, TextField } from "../shared/ui";
+import TermsModal from "./modals/TermsModal";
 
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -37,7 +38,8 @@ function SignUp() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [profileValues, setProfileValues] = useState<SignUpProfileValues>(emptyProfileValues);
-
+  const [showTerms, setShowTerms] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
 
   const {
     setEmail: setGlobalEmail,
@@ -372,7 +374,31 @@ function SignUp() {
             onChange={(e) => updateProfileField("specialty", e.target.value)}
           />
 
-          <AppButton w="100%" my={4} type="submit" disabled={Boolean(isSendingForm)}>
+          <Box mt={4} mb={2}>
+            <Checkbox.Root checked={acceptedTerms} onCheckedChange={(e) => setAcceptedTerms(!!e.checked)} colorPalette="brand">
+              <Checkbox.HiddenInput />
+              <Checkbox.Control>
+                <Checkbox.Indicator />
+              </Checkbox.Control>
+              <Checkbox.Label color="white">
+                He leído y acepto los{" "}
+                <Text
+                  as="span"
+                  color="blue.300"
+                  textDecoration="underline"
+                  cursor="pointer"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setShowTerms(true);
+                  }}
+                >
+                  Términos y Condiciones (Reglamento SkillSwap)
+                </Text>
+              </Checkbox.Label>
+            </Checkbox.Root>
+          </Box>
+
+          <AppButton w="100%" my={4} type="submit" disabled={Boolean(isSendingForm) || !acceptedTerms}>
             {!isSendingForm ? (
               "Registrarse"
             ) : (
@@ -384,6 +410,7 @@ function SignUp() {
           </AppButton>
         </Box>
       </Box>
+      <TermsModal isOpen={showTerms} onClose={() => setShowTerms(false)} />
     </form>
   );
 }
