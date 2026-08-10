@@ -1,15 +1,19 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { api } from "../services/api";
 import { useSearchParamsGlobal } from "../utils/GlobalVariables";
 import PublicationCard from "./PublicationCard";
 import ImageModal from "./modals/ImageModal";
 import PublicationComments from "./PublicationComments";
-import { Flex, Box, Heading, Text } from "@chakra-ui/react";
+import { Flex, Box, Heading, Text, Collapse } from "@chakra-ui/react";
 import { SkeletonPublicationCard } from "./Skeletons";
 import type { Publication } from "../types";
 import { useAuthSession } from "../app/auth/AuthSessionContext";
+import { AppButton } from "../shared/ui";
+import { FaArrowLeft } from "react-icons/fa";
 
 function ViewPublication() {
+  const navigate = useNavigate();
   const [publication, setPublication] = useState<Publication | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -142,16 +146,25 @@ function ViewPublication() {
 
   return (
     <Flex direction="column" w={["90%", "75%"]} mx="auto" minH="100vh" py={4}>
+      <Box mb={4}>
+        <AppButton type="button" tone="secondary" onClick={() => navigate("/")}>
+          <Flex align="center" gap={2}>
+            <FaArrowLeft />
+            <Text>Volver al inicio</Text>
+          </Flex>
+        </AppButton>
+      </Box>
+
       {publication.status === "restricted" && (
         <Box
-          bg="rgba(239, 68, 68, 0.15)"
-          border="1px solid #ef4444"
+          bg="var(--surface-bg)"
+          border="1px solid var(--card-border)"
           borderRadius="panel"
           p={4}
           mb={4}
           color="var(--text-color)"
         >
-          <Heading as="h4" size="md" color="red.400" mb={1}>
+          <Heading as="h4" size="md" color="var(--text-color)" mb={1}>
             Publicación Restringida
           </Heading>
           <Text fontSize="sm">
@@ -166,20 +179,22 @@ function ViewPublication() {
         onClickComent={() => setShowCommentInput((prev) => !prev)}
       />
 
-      <Box as="hr" borderColor="white" mt={3} mb={0} />
-      <Heading as="h6" size="sm" color="white" my={2}>
-        Comentarios
-      </Heading>
-      <Box as="hr" borderColor="white" mb={3} mt={0} />
+      <Collapse in={showCommentInput} animateOpacity>
+        <Box as="hr" borderColor="var(--card-border)" mt={3} mb={0} />
+        <Heading as="h6" size="sm" color="var(--text-color)" my={2}>
+          Comentarios
+        </Heading>
+        <Box as="hr" borderColor="var(--card-border)" mb={3} mt={0} />
 
-      <PublicationComments
-        publication={publication}
-        showInput={showCommentInput}
-        setShowInput={setShowCommentInput}
-        onImageClick={setImagenSeleccionada}
-        onCommentAdded={handleCommentAdded}
-        onCommentDeleted={handleCommentDeleted}
-      />
+        <PublicationComments
+          publication={publication}
+          showInput={showCommentInput}
+          setShowInput={setShowCommentInput}
+          onImageClick={setImagenSeleccionada}
+          onCommentAdded={handleCommentAdded}
+          onCommentDeleted={handleCommentDeleted}
+        />
+      </Collapse>
 
       <ImageModal image={imagenSeleccionada} onClose={() => setImagenSeleccionada(null)} />
     </Flex>
