@@ -13,7 +13,7 @@ export default function TermsModal({ isOpen, onClose }: TermsModalProps) {
       isOpen={isOpen}
       onClose={onClose}
       title="Reglamento de la Comunidad y Términos de Uso"
-      size="2xl"
+      size="xl"
       footer={
         <AppButton w="100%" onClick={onClose}>
           Entendido
