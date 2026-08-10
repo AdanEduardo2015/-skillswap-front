@@ -122,6 +122,16 @@ img[src$=".svg"]:not(.no-filter) {
   filter: none !important;
 }
 
+.brand-logo {
+  filter: brightness(0) !important;
+  transform: scale(1.05);
+  transition: filter 0.3s ease, transform 0.3s ease;
+}
+
+[data-theme="dark"] .brand-logo {
+  filter: brightness(0) invert(1) !important;
+}
+
 .cursor-pointer {
   cursor: pointer;
 }

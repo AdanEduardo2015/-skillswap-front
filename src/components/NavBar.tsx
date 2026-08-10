@@ -105,7 +105,7 @@ function NavBar() {
           alt="Logo"
           w={{ base: "3.5rem", md: "4.25rem" }}
           maxW="4.25rem"
-          className="app-navbar-logo no-filter"
+          className="app-navbar-logo brand-logo"
         />
         <Box className="app-navbar-menu">
           <ThemeToggle />
@@ -139,7 +139,7 @@ function NavBar() {
           w="3.5rem"
           maxW="3.5rem"
           cursor="pointer"
-          className="app-navbar-logo no-filter"
+          className="app-navbar-logo brand-logo"
           onClick={() => navigate("/")}
         />
 
@@ -174,7 +174,7 @@ function NavBar() {
           w="4.25rem"
           maxW="4.25rem"
           cursor="pointer"
-          className="app-navbar-logo no-filter"
+          className="app-navbar-logo brand-logo"
           onClick={() => navigate("/")}
         />
 

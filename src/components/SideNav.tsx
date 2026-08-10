@@ -92,7 +92,7 @@ export default function SideNav() {
           w="4.25rem"
           maxW="4.25rem"
           cursor="pointer"
-          className="no-filter"
+          className="brand-logo"
           onClick={() => navigate("/")}
         />
       </Box>
