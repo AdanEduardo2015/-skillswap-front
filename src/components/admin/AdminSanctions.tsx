@@ -13,10 +13,9 @@ const statusOptions: Array<{ value: SanctionStatus; label: string; colorPalette:
 ];
 
 const typeOptions: Array<{ value: SanctionType; label: string }> = [
-  { value: "warning", label: "Advertencia" },
+  { value: "content_restriction", label: "Restriccion de contenido" },
   { value: "temporary_ban", label: "Baneo temporal" },
   { value: "permanent_ban", label: "Baneo permanente" },
-  { value: "content_restriction", label: "Restriccion de contenido" },
 ];
 
 const typeLabels: Record<SanctionType, string> = {
@@ -39,7 +38,7 @@ const formatDate = (value?: string | null) => {
 
 const emptyForm = {
   userEmail: "",
-  type: "permanent_ban" as SanctionType,
+  type: "content_restriction" as SanctionType,
   description: "",
   endsAt: "",
   publicationId: "",
