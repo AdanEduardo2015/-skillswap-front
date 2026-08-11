@@ -65,7 +65,11 @@ export default function PublicationContent({ post, titleId, onVideoPlay }: Publi
           src={post.videoUrl}
           borderRadius="md"
           mb={3}
-          w={["100%", "75%"]}
+          w="100%"
+          maxW="600px"
+          maxH={{ base: "300px", md: "450px" }}
+          objectFit="contain"
+          bg="black"
           display="block"
           mx="auto"
           controls
