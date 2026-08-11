@@ -122,7 +122,7 @@ export default function AdminAppeals() {
 
   usePolling(() => {
     void loadAppeals(false);
-  }, 10000, [statusFilter]);
+  }, 3000, [statusFilter]);
 
   const loadMore = async () => {
     if (!nextToken) return;

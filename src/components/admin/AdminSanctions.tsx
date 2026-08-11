@@ -109,7 +109,7 @@ export default function AdminSanctions() {
 
   usePolling(() => {
     void loadSanctions(false);
-  }, 10000, [status, userEmailFilter]);
+  }, 3000, [status, userEmailFilter]);
 
   const updateForm = <K extends keyof typeof emptyForm>(field: K, value: (typeof emptyForm)[K]) => {
     setFormValues((current) => ({ ...current, [field]: value }));

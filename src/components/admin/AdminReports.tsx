@@ -105,7 +105,7 @@ export default function AdminReports() {
 
   usePolling(() => {
     void loadReports(false);
-  }, 10000, [status]);
+  }, 3000, [status]);
 
   const loadMore = async () => {
     if (!nextToken || isLoadingMore) return;

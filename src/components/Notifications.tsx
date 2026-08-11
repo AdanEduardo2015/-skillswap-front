@@ -210,7 +210,7 @@ function Notifications() {
 
   usePolling(() => {
     void fetchNotifications(false);
-  }, canLoadNotifications ? 10000 : null, [canLoadNotifications]);
+  }, canLoadNotifications ? 3000 : null, [canLoadNotifications]);
 
   const handleToggleNotificationsEnabled = async (enabled: boolean) => {
     setIsSavingSettings(true);
