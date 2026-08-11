@@ -175,6 +175,7 @@ export default function PublicationComments({
                     autoFocus
                     minH="60px"
                     resize="none"
+                    maxLength={300}
                     mb={2}
                     size="sm"
                   />
@@ -393,6 +394,7 @@ export default function PublicationComments({
                   maxH="120px"
                   rows={1}
                   resize="none"
+                  maxLength={300}
                   borderColor="var(--input-border)"
                   _focus={{ border: "1px solid var(--input-focus-border)", boxShadow: "none", outline: "none" }}
                 />
@@ -442,13 +444,6 @@ export default function PublicationComments({
                   setNewComment(e.target.value);
                   autoResize();
                 }}
-                onKeyDown={async (e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    if (!newComment.trim() || isCreatingComment) return;
-                    await submitComment();
-                  }
-                }}
                 placeholder="Escribe un comentario..."
                 bg="var(--surface-muted)"
                 color="var(--text-color)"
@@ -459,6 +454,7 @@ export default function PublicationComments({
                 maxH="120px"
                 rows={1}
                 resize="none"
+                maxLength={300}
                 borderColor="var(--input-border)"
                 _focus={{ border: "1px solid var(--input-focus-border)", boxShadow: "none", outline: "none" }}
                 _placeholder={{ color: "var(--text-subtle)" }}

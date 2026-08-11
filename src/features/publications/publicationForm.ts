@@ -1,7 +1,7 @@
 import type { Category, CreatePublicationPayload, Publication, PublicationFormat } from "../../types";
 
 export const PUBLICATION_TITLE_MAX_LENGTH = 100;
-export const PUBLICATION_CONTENT_MAX_LENGTH = 1000;
+export const PUBLICATION_CONTENT_MAX_LENGTH = 300;
 export const PUBLICATION_MAX_TAGS = 5;
 export const PUBLICATION_MAX_TAG_LENGTH = 30;
 export const PUBLICATION_VIDEO_MAX_BYTES = 100 * 1024 * 1024;
